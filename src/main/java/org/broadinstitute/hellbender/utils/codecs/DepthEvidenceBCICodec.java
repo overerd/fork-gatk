@@ -4,6 +4,7 @@ import htsjdk.samtools.SAMSequenceDictionary;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.tools.sv.DepthEvidence;
+import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Reader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writer;
 
@@ -52,7 +53,7 @@ public class DepthEvidenceBCICodec extends AbstractBCICodec<DepthEvidence> {
                                            final int compressionLevel ) {
         final String className = DepthEvidence.class.getSimpleName();
         return new Writer<>(path,
-                            new FeaturesHeader(className, DepthEvidence.BCI_VERSION, dict, sampleNames),
+                            new SVFeaturesHeader(className, DepthEvidence.BCI_VERSION, dict, sampleNames),
                             this::encode,
                             compressionLevel);
     }

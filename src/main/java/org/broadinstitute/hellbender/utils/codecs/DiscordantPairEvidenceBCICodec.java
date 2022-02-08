@@ -4,6 +4,7 @@ import htsjdk.samtools.SAMSequenceDictionary;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.tools.sv.DiscordantPairEvidence;
+import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Reader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writer;
 
@@ -54,8 +55,8 @@ public class DiscordantPairEvidenceBCICodec extends AbstractBCICodec<DiscordantP
                                                     final List<String> sampleNames,
                                                     final int compressionLevel ) {
         final String className = DiscordantPairEvidence.class.getSimpleName();
-        final FeaturesHeader header =
-                new FeaturesHeader(className, DiscordantPairEvidence.BCI_VERSION, dict, sampleNames);
+        final SVFeaturesHeader header =
+                new SVFeaturesHeader(className, DiscordantPairEvidence.BCI_VERSION, dict, sampleNames);
         return new Writer<>(path, header, this::encode, compressionLevel);
     }
 

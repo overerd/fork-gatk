@@ -3,6 +3,7 @@ package org.broadinstitute.hellbender.utils.codecs;
 import htsjdk.samtools.SAMSequenceDictionary;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.exceptions.UserException;
+import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
 import org.broadinstitute.hellbender.tools.sv.SplitReadEvidence;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Reader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writer;
@@ -48,8 +49,8 @@ public class SplitReadEvidenceBCICodec extends AbstractBCICodec<SplitReadEvidenc
                                                final List<String> sampleNames,
                                                final int compressionLevel ) {
         final String className = SplitReadEvidence.class.getSimpleName();
-        final FeaturesHeader header =
-                new FeaturesHeader(className, SplitReadEvidence.BCI_VERSION, dict, sampleNames);
+        final SVFeaturesHeader header =
+                new SVFeaturesHeader(className, SplitReadEvidence.BCI_VERSION, dict, sampleNames);
         return new Writer<>(path, header, this::encode, compressionLevel);
     }
 

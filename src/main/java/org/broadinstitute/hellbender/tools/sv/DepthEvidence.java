@@ -1,12 +1,13 @@
 package org.broadinstitute.hellbender.tools.sv;
 
-import htsjdk.tribble.Feature;
+import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.Utils;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
-public final class DepthEvidence implements Feature {
+public final class DepthEvidence implements SVFeature {
 
     final String contig;
     final int start;
@@ -40,6 +41,23 @@ public final class DepthEvidence implements Feature {
     }
 
     public int[] getCounts() { return counts; }
+
+    @Override
+    public DepthEvidence extractSamples( final List<String> sampleNames, final Object headerObj ) {
+        if ( !(headerObj instanceof SVFeaturesHeader) ) {
+            throw new UserException("DepthEvidence feature source without a header.  " +
+                                    "We don't know which samples we have.");
+        }
+        final SVFeaturesHeader header = (SVFeaturesHeader)headerObj;
+        final List<String> headerSamples = header.getSampleNames();
+        final int nCounts = sampleNames.size();
+        final int[] newCounts = new int[nCounts];
+        for ( int idx = 0; idx != nCounts; ++idx ) {
+            final int countsIdx = headerSamples.indexOf(sampleNames.get(idx));
+            newCounts[idx] = countsIdx == -1 ? -1 : counts[countsIdx];
+        }
+        return new DepthEvidence(contig, start, end, newCounts);
+    }
 
     @Override
     public boolean equals(Object o) {
