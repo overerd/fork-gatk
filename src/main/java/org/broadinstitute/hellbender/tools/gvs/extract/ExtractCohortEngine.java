@@ -63,6 +63,7 @@ public class ExtractCohortEngine {
     private final String projectID;
     private final CommonCode.ModeEnum mode;
     private final boolean emitPLs;
+    private final boolean emitADs;
 
     /** List of sample names seen in the variant data from BigQuery. */
     private final Set<String> sampleNames;
@@ -117,6 +118,7 @@ public class ExtractCohortEngine {
                                final ProgressMeter progressMeter,
                                final String filterSetName,
                                final boolean emitPLs,
+                               final boolean emitADs,
                                final ExtractCohort.VQSLODFilteringType VQSLODFilteringType,
                                final boolean excludeFilteredSites,
                                final GQStateEnum inferredReferenceState,
@@ -131,7 +133,9 @@ public class ExtractCohortEngine {
         this.sampleNames = new HashSet<>(sampleIdToName.values());
         this.mode = mode;
         this.emitPLs = emitPLs;
+        this.emitADs = emitADs;
 
+        // TODO this needs to be refactored to not be two lists and add emitADs
         this.cohortTableRef = cohortTableName == null || "".equals(cohortTableName) ? null :
                 new TableReference(cohortTableName, emitPLs ? SchemaUtils.COHORT_FIELDS : SchemaUtils.COHORT_FIELDS_NO_PL);
 
@@ -797,6 +801,11 @@ public class ExtractCohortEngine {
         final String callPL = sampleRecord.getCallPL();
         if ( this.emitPLs && callPL != null ) {
             genotypeBuilder.PL(Arrays.stream(callPL.split(SchemaUtils.MULTIVALUE_FIELD_DELIMITER)).mapToInt(Integer::parseInt).toArray());
+        }
+
+        final String callAD = sampleRecord.getCallAD();
+        if ( this.emitADs && callAD != null ) {
+            genotypeBuilder.AD(Arrays.stream(callAD.split(SchemaUtils.MULTIVALUE_FIELD_DELIMITER)).mapToInt(Integer::parseInt).toArray());
         }
 
         final String callRGQ = sampleRecord.getCallRGQ();
