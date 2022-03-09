@@ -1,7 +1,6 @@
 package org.broadinstitute.hellbender.tools.gvs.extract;
 
 import com.google.common.collect.Sets;
-import static java.util.stream.Collectors.toList;
 
 import htsjdk.samtools.util.OverlapDetector;
 import htsjdk.variant.variantcontext.Allele;
@@ -135,9 +134,12 @@ public class ExtractCohortEngine {
         this.emitPLs = emitPLs;
         this.emitADs = emitADs;
 
-        // TODO this needs to be refactored to not be two lists and add emitADs
-        this.cohortTableRef = cohortTableName == null || "".equals(cohortTableName) ? null :
-                new TableReference(cohortTableName, emitPLs ? SchemaUtils.COHORT_FIELDS : SchemaUtils.COHORT_FIELDS_NO_PL);
+        List<String> schema = new ArrayList<>();
+        schema.addAll(SchemaUtils.COHORT_FIELDS_REQ);
+        if (emitPLs) { schema.addAll(SchemaUtils.COHORT_FIELDS_PL); }
+        if (emitADs) { schema.addAll(SchemaUtils.COHORT_FIELDS_AD); }
+
+        this.cohortTableRef = cohortTableName == null || "".equals(cohortTableName) ? null : new TableReference(cohortTableName, schema);
 
         this.vetRangesFQDataSet = vetRangesFQDataSet;
         this.fqRangesExtractVetTable = fqRangesExtractVetTable;
