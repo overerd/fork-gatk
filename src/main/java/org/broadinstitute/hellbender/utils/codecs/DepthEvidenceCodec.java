@@ -13,7 +13,9 @@ import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
 import org.broadinstitute.hellbender.utils.io.FeatureOutputStream;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class DepthEvidenceCodec extends AsciiFeatureCodec<DepthEvidence>
         implements FeatureOutputCodec<DepthEvidence, FeatureOutputStream<DepthEvidence>> {
@@ -105,5 +107,14 @@ public class DepthEvidenceCodec extends AsciiFeatureCodec<DepthEvidence>
             columns.add(Integer.toString(count));
         }
         return String.join(COL_DELIMITER, columns);
+    }
+
+    @Override
+    public Comparator<DepthEvidence> getSameLocusComparator() { return DepthEvidence.comparator; }
+
+    @Override
+    public void resolveSameLocusFeatures( final PriorityQueue<DepthEvidence> queue,
+                                          final FeatureOutputStream<DepthEvidence> sink ) {
+        DepthEvidence.resolveSameLocusFeatures(queue, sink);
     }
 }

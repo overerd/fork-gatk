@@ -11,7 +11,9 @@ import org.broadinstitute.hellbender.tools.sv.BafEvidence;
 import org.broadinstitute.hellbender.utils.io.FeatureOutputStream;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class BafEvidenceCodec extends AsciiFeatureCodec<BafEvidence>
         implements FeatureOutputCodec<BafEvidence, FeatureOutputStream<BafEvidence>> {
@@ -76,5 +78,14 @@ public class BafEvidenceCodec extends AsciiFeatureCodec<BafEvidence>
                 ev.getSample()
         );
         return String.join(COL_DELIMITER, columns);
+    }
+
+    @Override
+    public Comparator<BafEvidence> getSameLocusComparator() { return BafEvidence.comparator; }
+
+    @Override
+    public void resolveSameLocusFeatures( final PriorityQueue<BafEvidence> queue,
+                                          final FeatureOutputStream<BafEvidence> os ) {
+        BafEvidence.resolveSameLocusFeatures(queue, os);
     }
 }

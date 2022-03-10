@@ -1,9 +1,13 @@
 package org.broadinstitute.hellbender.tools.sv;
 
+import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.Utils;
+import org.broadinstitute.hellbender.utils.codecs.FeatureSink;
 
-import java.util.List;
+import java.util.Comparator;
 import java.util.Objects;
+import java.util.PriorityQueue;
+import java.util.Set;
 
 public final class SplitReadEvidence implements SVFeature {
 
@@ -14,6 +18,9 @@ public final class SplitReadEvidence implements SVFeature {
     final boolean strand;
 
     public final static String BCI_VERSION = "1.0";
+    public final static Comparator<SplitReadEvidence> comparator =
+            Comparator.comparing(SplitReadEvidence::getSample)
+                    .thenComparing((f1, f2) -> f1.strand == f2.strand ? 0 : f1.strand ? 1 : -1);
 
     public SplitReadEvidence( final String sample, final String contig, final int position,
                               final int count, final boolean strand ) {
@@ -54,8 +61,7 @@ public final class SplitReadEvidence implements SVFeature {
     }
 
     @Override
-    public SplitReadEvidence extractSamples( final List<String> sampleNames,
-                                             final Object header ) {
+    public SplitReadEvidence extractSamples( final Set<String> sampleNames, final Object header ) {
         return sampleNames.contains(sample) ? this : null;
     }
 
@@ -74,5 +80,24 @@ public final class SplitReadEvidence implements SVFeature {
     @Override
     public int hashCode() {
         return Objects.hash(sample, contig, position, count, strand);
+    }
+
+    public static void resolveSameLocusFeatures( final PriorityQueue<SplitReadEvidence> queue,
+                                                 final FeatureSink<SplitReadEvidence> sink ) {
+        if ( queue.isEmpty() ) {
+            return;
+        }
+        SplitReadEvidence lastEvidence = queue.poll();
+        while ( !queue.isEmpty() ) {
+            final SplitReadEvidence evidence = queue.poll();
+            if ( comparator.compare(lastEvidence, evidence) == 0 ) {
+                throw new UserException("Two instances of SplitReadEvidence for sample " +
+                        evidence.sample + " at " + evidence.contig + ":" + evidence.position +
+                        (evidence.strand ? " right" : " left"));
+            }
+            sink.write(lastEvidence);
+            lastEvidence = evidence;
+        }
+        sink.write(lastEvidence);
     }
 }

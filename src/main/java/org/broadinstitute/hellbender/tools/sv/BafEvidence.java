@@ -1,9 +1,13 @@
 package org.broadinstitute.hellbender.tools.sv;
 
+import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.Utils;
+import org.broadinstitute.hellbender.utils.codecs.FeatureSink;
 
-import java.util.List;
+import java.util.Comparator;
 import java.util.Objects;
+import java.util.PriorityQueue;
+import java.util.Set;
 
 public final class BafEvidence implements SVFeature {
     final String sample;
@@ -12,6 +16,8 @@ public final class BafEvidence implements SVFeature {
     final double value;
 
     public final static String BCI_VERSION = "1.0";
+    public static final Comparator<BafEvidence> comparator =
+            Comparator.comparing(BafEvidence::getSample);
 
     public BafEvidence( final String sample, final String contig,
                         final int position, final double value ) {
@@ -47,7 +53,7 @@ public final class BafEvidence implements SVFeature {
     }
 
     @Override
-    public BafEvidence extractSamples( final List<String> sampleList, final Object header ) {
+    public BafEvidence extractSamples( final Set<String> sampleList, final Object header ) {
         return sampleList.contains(sample) ? this : null;
     }
 
@@ -65,5 +71,23 @@ public final class BafEvidence implements SVFeature {
     @Override
     public int hashCode() {
         return Objects.hash(sample, contig, position, value);
+    }
+
+    public static void resolveSameLocusFeatures( final PriorityQueue<BafEvidence> queue,
+                                                 final FeatureSink<BafEvidence> sink ) {
+        if ( queue.isEmpty() ) {
+            return;
+        }
+        BafEvidence lastEvidence = queue.poll();
+        while ( !queue.isEmpty() ) {
+            final BafEvidence evidence = queue.poll();
+            if ( comparator.compare(lastEvidence, evidence) == 0 ) {
+                throw new UserException("Two instances of BafEvidence for sample " +
+                        evidence.sample + " at " + evidence.contig + ":" + evidence.position);
+            }
+            sink.write(lastEvidence);
+            lastEvidence = evidence;
+        }
+        sink.write(lastEvidence);
     }
 }

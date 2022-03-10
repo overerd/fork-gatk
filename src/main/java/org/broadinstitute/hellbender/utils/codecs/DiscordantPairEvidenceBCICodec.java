@@ -11,7 +11,9 @@ import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writ
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class DiscordantPairEvidenceBCICodec extends AbstractBCICodec<DiscordantPairEvidence> {
     private boolean versionChecked = false;
@@ -71,5 +73,16 @@ public class DiscordantPairEvidenceBCICodec extends AbstractBCICodec<DiscordantP
         dos.writeInt(writer.getContigIndex(peEvidence.getEndContig()));
         dos.writeInt(peEvidence.getEndPosition());
         dos.writeBoolean(peEvidence.getEndStrand());
+    }
+
+    @Override
+    public Comparator<DiscordantPairEvidence> getSameLocusComparator() {
+        return DiscordantPairEvidence.comparator;
+    }
+
+    @Override
+    public void resolveSameLocusFeatures( final PriorityQueue<DiscordantPairEvidence> queue,
+                                          final Writer<DiscordantPairEvidence> sink ) {
+        DiscordantPairEvidence.resolveSameLocusFeatures(queue, sink);
     }
 }

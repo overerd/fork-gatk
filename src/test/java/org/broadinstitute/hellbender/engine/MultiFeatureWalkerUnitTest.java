@@ -12,8 +12,8 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FeatureMergingWalkerUnitTest extends CommandLineProgramTest {
-    private static final class DummyFeatureWalker extends FeatureMergingWalker<Feature> {
+public class MultiFeatureWalkerUnitTest extends CommandLineProgramTest {
+    private static final class DummyMultiFeatureWalker extends MultiFeatureWalker<Feature> {
         @Argument( fullName = StandardArgumentDefinitions.FEATURE_LONG_NAME,
                     shortName = StandardArgumentDefinitions.FEATURE_SHORT_NAME )
         private List<FeatureInput<Feature>> featureInputs;
@@ -26,7 +26,7 @@ public class FeatureMergingWalkerUnitTest extends CommandLineProgramTest {
 
     @Test
     public void testDictionarySubsetIsOK() {
-        final DummyFeatureWalker dummy = new DummyFeatureWalker();
+        final DummyMultiFeatureWalker dummy = new DummyMultiFeatureWalker();
         final String[] args = {
                 "--" + StandardArgumentDefinitions.VERBOSITY_NAME, Log.LogLevel.ERROR.name(),
                 // full HG38 dictionary with 3366 entries
@@ -49,7 +49,7 @@ public class FeatureMergingWalkerUnitTest extends CommandLineProgramTest {
 
     @Test(expectedExceptions = { UserException.class })
     public void testMixedDictionariesAreNotOK() {
-        final DummyFeatureWalker dummy = new DummyFeatureWalker();
+        final DummyMultiFeatureWalker dummy = new DummyMultiFeatureWalker();
         final String[] args = {
                 "--" + StandardArgumentDefinitions.VERBOSITY_NAME, Log.LogLevel.ERROR.name(),
                 "--" + StandardArgumentDefinitions.DISABLE_SEQUENCE_DICT_VALIDATION_NAME, "true",
@@ -65,7 +65,7 @@ public class FeatureMergingWalkerUnitTest extends CommandLineProgramTest {
 
     @Test(expectedExceptions = { UserException.class })
     public void testMisorderedDictionariesAreNotOK() {
-        final DummyFeatureWalker dummy = new DummyFeatureWalker();
+        final DummyMultiFeatureWalker dummy = new DummyMultiFeatureWalker();
         final String[] args = {
                 "--" + StandardArgumentDefinitions.VERBOSITY_NAME, Log.LogLevel.ERROR.name(),
                 // subset of HG38 dictionary with misordered contigs
@@ -80,7 +80,7 @@ public class FeatureMergingWalkerUnitTest extends CommandLineProgramTest {
 
     @Test
     public void testGetDictionaryAndSamplesFromBCIFile() {
-        final DummyFeatureWalker dummy = new DummyFeatureWalker();
+        final DummyMultiFeatureWalker dummy = new DummyMultiFeatureWalker();
         final String[] args = {
                 "--" + StandardArgumentDefinitions.VERBOSITY_NAME, Log.LogLevel.ERROR.name(),
                 "-" + StandardArgumentDefinitions.FEATURE_SHORT_NAME, packageRootTestDir + "engine/tiny_hg38.baf.bci"
@@ -96,7 +96,7 @@ public class FeatureMergingWalkerUnitTest extends CommandLineProgramTest {
 
     @Test
     public void testContigsOrder() {
-        final DummyFeatureWalker dummy = new DummyFeatureWalker();
+        final DummyMultiFeatureWalker dummy = new DummyMultiFeatureWalker();
         final String[] args = {
                 "--" + StandardArgumentDefinitions.VERBOSITY_NAME, Log.LogLevel.ERROR.name(),
                 // full HG38 dictionary with 3366 entries
@@ -118,7 +118,7 @@ public class FeatureMergingWalkerUnitTest extends CommandLineProgramTest {
 
     @Test
     public void testCoordinateOrder() {
-        final DummyFeatureWalker dummy = new DummyFeatureWalker();
+        final DummyMultiFeatureWalker dummy = new DummyMultiFeatureWalker();
         final String[] args = {
                 "--" + StandardArgumentDefinitions.VERBOSITY_NAME, Log.LogLevel.ERROR.name(),
                 // full HG38 dictionary with 3366 entries

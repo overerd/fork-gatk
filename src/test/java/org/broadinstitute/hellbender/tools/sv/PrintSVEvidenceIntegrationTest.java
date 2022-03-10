@@ -3,15 +3,16 @@ package org.broadinstitute.hellbender.tools.sv;
 import htsjdk.samtools.util.FileExtensions;
 import org.broadinstitute.hellbender.CommandLineProgramTest;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
+import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
-import org.broadinstitute.hellbender.utils.codecs.BafEvidenceCodec;
-import org.broadinstitute.hellbender.utils.codecs.DepthEvidenceCodec;
-import org.broadinstitute.hellbender.utils.codecs.DiscordantPairEvidenceCodec;
-import org.broadinstitute.hellbender.utils.codecs.SplitReadEvidenceCodec;
+import org.broadinstitute.hellbender.utils.codecs.*;
+import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.util.Collections;
+import java.util.PriorityQueue;
 
 public class PrintSVEvidenceIntegrationTest extends CommandLineProgramTest {
 
@@ -78,4 +79,133 @@ public class PrintSVEvidenceIntegrationTest extends CommandLineProgramTest {
         spec.executeTest(testName, this, expectedIndexExtension);
     }
 
+    @Test
+    public void testCorrectFeatureTypes() throws IOException {
+        final IntegrationTestSpec testSpec = new IntegrationTestSpec(
+                " -" + StandardArgumentDefinitions.OUTPUT_SHORT_NAME + " %s" +
+                        " -" + StandardArgumentDefinitions.FEATURE_SHORT_NAME + " " +
+                        packageRootTestDir + "engine/tiny_hg38.baf.bci",
+                Collections.singletonList(packageRootTestDir + "engine/tiny_hg38.baf.txt"));
+        testSpec.setOutputFileExtension("baf.txt");
+        testSpec.executeTest("matching input and output types", this);
+    }
+
+    @Test
+    public void testIncorrectFeatureTypes() throws IOException {
+        final IntegrationTestSpec testSpec = new IntegrationTestSpec(
+                " -" + StandardArgumentDefinitions.OUTPUT_SHORT_NAME + " %s" +
+                        " -" + StandardArgumentDefinitions.FEATURE_SHORT_NAME + " " +
+                        packageRootTestDir + "engine/tiny_hg38.baf.bci",
+                1, UserException.class);
+        testSpec.setOutputFileExtension("pe.txt");
+        testSpec.executeTest("mismatched input and output types", this);
+    }
+
+    public static class DummyFeatureSink<F extends SVFeature> implements FeatureSink<F> {
+        public int nRecsWritten = 0;
+        public void write( F feature ) { nRecsWritten += 1; }
+        public void close() {}
+    }
+
+    @Test(expectedExceptions = {UserException.class})
+    public void testBafViolateUniquenessCriterion() {
+        final PriorityQueue<BafEvidence> queue = new PriorityQueue<>(2, BafEvidence.comparator);
+        queue.add(new BafEvidence("sample", "chr1", 1, .5));
+        queue.add(new BafEvidence("sample", "chr1", 1, .4));
+        final DummyFeatureSink<BafEvidence> sink = new DummyFeatureSink<>();
+        BafEvidence.resolveSameLocusFeatures(queue, sink);
+        Assert.assertEquals(sink.nRecsWritten, 0);
+    }
+
+    @Test
+    public void testBafUniquenessCriterion() {
+        final PriorityQueue<BafEvidence> queue = new PriorityQueue<>(2, BafEvidence.comparator);
+        queue.add(new BafEvidence("sample1", "chr1", 1, .5));
+        queue.add(new BafEvidence("sample2", "chr1", 1, .4));
+        final DummyFeatureSink<BafEvidence> sink = new DummyFeatureSink<>();
+        BafEvidence.resolveSameLocusFeatures(queue, sink);
+        Assert.assertEquals(sink.nRecsWritten, 2);
+    }
+
+    @Test(expectedExceptions = {UserException.class})
+    public void testDepthViolateUniquenessCriterion() {
+        final PriorityQueue<DepthEvidence> queue = new PriorityQueue<>(2, DepthEvidence.comparator);
+        queue.add(new DepthEvidence("chr1", 1, 101, new int[]{1}));
+        queue.add(new DepthEvidence("chr1", 1, 101, new int[]{1}));
+        final DummyFeatureSink<DepthEvidence> sink = new DummyFeatureSink<>();
+        DepthEvidence.resolveSameLocusFeatures(queue, sink);
+        Assert.assertEquals(sink.nRecsWritten, 0);
+    }
+
+    @Test
+    public void testDepthUniquenessCriterion() {
+        // as long as the data doesn't conflict, the 2 features ought to be folded together
+        testDepthUniquenessCriterion(DepthEvidence.MISSING_DATA, 1);
+        testDepthUniquenessCriterion(1, DepthEvidence.MISSING_DATA);
+        testDepthUniquenessCriterion(DepthEvidence.MISSING_DATA, DepthEvidence.MISSING_DATA);
+    }
+
+    public void testDepthUniquenessCriterion( int val1, int val2 ) {
+        final PriorityQueue<DepthEvidence> queue = new PriorityQueue<>(2, DepthEvidence.comparator);
+        queue.add(new DepthEvidence("chr1", 1, 101, new int[]{val1}));
+        queue.add(new DepthEvidence("chr1", 1, 101, new int[]{val2}));
+        final DummyFeatureSink<DepthEvidence> sink = new DummyFeatureSink<>();
+        DepthEvidence.resolveSameLocusFeatures(queue, sink);
+        Assert.assertEquals(sink.nRecsWritten, 1);
+    }
+
+    @Test
+    public void testDiscordantPairUniquenessCriterion() {
+        final PriorityQueue<DiscordantPairEvidence> queue = new PriorityQueue<>(2, DiscordantPairEvidence.comparator);
+        final DiscordantPairEvidence ev =
+                new DiscordantPairEvidence("sample", "chr1", 1, true, "chr1", 1001, false);
+        queue.add(ev);
+        queue.add(ev);
+        final DummyFeatureSink<DiscordantPairEvidence> sink = new DummyFeatureSink<>();
+        DiscordantPairEvidence.resolveSameLocusFeatures(queue, sink);
+        // they both get written, even though they're identical
+        Assert.assertEquals(sink.nRecsWritten, 2);
+    }
+
+    @Test(expectedExceptions = {UserException.class})
+    public void testLocusDepthViolateUniquenessCriterion() {
+        final PriorityQueue<LocusDepth> queue = new PriorityQueue<>(2, LocusDepth.comparator);
+        queue.add(new LocusDepth("chr1", 1, "sample", (byte)'A', 1, 0, 0, 0));
+        queue.add(new LocusDepth("chr1", 1, "sample", (byte)'A', 0, 1, 0, 0));
+        final DummyFeatureSink<LocusDepth> sink = new DummyFeatureSink<>();
+        LocusDepth.resolveSameLocusFeatures(queue, sink);
+        Assert.assertEquals(sink.nRecsWritten, 0);
+    }
+
+    @Test
+    public void testLocusDepthUniquenessCriterion() {
+        final PriorityQueue<LocusDepth> queue = new PriorityQueue<>(2, LocusDepth.comparator);
+        queue.add(new LocusDepth("chr1", 1, "sample1", (byte)'A', 1, 0, 0, 0));
+        queue.add(new LocusDepth("chr1", 1, "sample2", (byte)'A', 0, 1, 0, 0));
+        final DummyFeatureSink<LocusDepth> sink = new DummyFeatureSink<>();
+        LocusDepth.resolveSameLocusFeatures(queue, sink);
+        Assert.assertEquals(sink.nRecsWritten, 2);
+    }
+
+    @Test(expectedExceptions = {UserException.class})
+    public void testSplitReadViolateUniquenessCriterion() {
+        final PriorityQueue<SplitReadEvidence> queue = new PriorityQueue<>(2, SplitReadEvidence.comparator);
+        queue.add(new SplitReadEvidence("sample", "chr1", 1, 1, true));
+        queue.add(new SplitReadEvidence("sample", "chr1", 1, 1, true));
+        final DummyFeatureSink<SplitReadEvidence> sink = new DummyFeatureSink<>();
+        SplitReadEvidence.resolveSameLocusFeatures(queue, sink);
+        Assert.assertEquals(sink.nRecsWritten, 0);
+    }
+
+    @Test
+    public void testSplitReadUniquenessCriterion() {
+        final PriorityQueue<SplitReadEvidence> queue = new PriorityQueue<>(2, SplitReadEvidence.comparator);
+        queue.add(new SplitReadEvidence("sample1", "chr1", 1, 1, true));
+        queue.add(new SplitReadEvidence("sample2", "chr1", 1, 1, true));
+        queue.add(new SplitReadEvidence("sample1", "chr1", 1, 1, false));
+        queue.add(new SplitReadEvidence("sample2", "chr1", 1, 1, false));
+        final DummyFeatureSink<SplitReadEvidence> sink = new DummyFeatureSink<>();
+        SplitReadEvidence.resolveSameLocusFeatures(queue, sink);
+        Assert.assertEquals(sink.nRecsWritten, 4);
+    }
 }

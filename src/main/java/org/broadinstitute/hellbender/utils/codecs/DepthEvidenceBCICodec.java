@@ -11,7 +11,9 @@ import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writ
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class DepthEvidenceBCICodec extends AbstractBCICodec<DepthEvidence> {
     private boolean versionChecked = false;
@@ -70,5 +72,14 @@ public class DepthEvidenceBCICodec extends AbstractBCICodec<DepthEvidence> {
         for ( final int count : counts ) {
             dos.writeInt(count);
         }
+    }
+
+    @Override
+    public Comparator<DepthEvidence> getSameLocusComparator() { return DepthEvidence.comparator; }
+
+    @Override
+    public void resolveSameLocusFeatures( final PriorityQueue<DepthEvidence> queue,
+                                          final Writer<DepthEvidence> sink ) {
+        DepthEvidence.resolveSameLocusFeatures(queue, sink);
     }
 }

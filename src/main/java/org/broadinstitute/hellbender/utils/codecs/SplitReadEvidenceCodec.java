@@ -11,7 +11,9 @@ import org.broadinstitute.hellbender.tools.sv.SplitReadEvidence;
 import org.broadinstitute.hellbender.utils.io.FeatureOutputStream;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class SplitReadEvidenceCodec extends AsciiFeatureCodec<SplitReadEvidence>
         implements FeatureOutputCodec<SplitReadEvidence, FeatureOutputStream<SplitReadEvidence>> {
@@ -87,5 +89,14 @@ public class SplitReadEvidenceCodec extends AsciiFeatureCodec<SplitReadEvidence>
                 ev.getSample()
         );
         return String.join(COL_DELIMITER, columns);
+    }
+
+    @Override
+    public Comparator<SplitReadEvidence> getSameLocusComparator() { return SplitReadEvidence.comparator; }
+
+    @Override
+    public void resolveSameLocusFeatures( PriorityQueue<SplitReadEvidence> queue,
+                                          FeatureOutputStream<SplitReadEvidence> sink ) {
+        SplitReadEvidence.resolveSameLocusFeatures(queue, sink);
     }
 }

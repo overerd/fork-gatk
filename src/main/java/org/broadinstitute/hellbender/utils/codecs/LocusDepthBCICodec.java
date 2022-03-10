@@ -8,12 +8,15 @@ import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Reader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writer;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class LocusDepthBCICodec extends AbstractBCICodec<LocusDepth> {
     private boolean versionChecked = false;
-    private SAMSequenceDictionary dict;
     private static final String LD_BCI_FILE_EXTENSION = ".ld.bci";
 
     @Override
@@ -25,7 +28,12 @@ public class LocusDepthBCICodec extends AbstractBCICodec<LocusDepth> {
             }
             versionChecked = true;
         }
-        return new LocusDepth(reader.getStream(), reader.getDictionary());
+        final DataInputStream dis = reader.getStream();
+        return new LocusDepth(reader.getDictionary().getSequence(dis.readInt()).getSequenceName(),
+                                dis.readInt(),
+                                reader.getSampleNames().get(dis.readInt()),
+                                dis.readByte(),
+                                dis.readInt(), dis.readInt(), dis.readInt(), dis.readInt());
     }
 
     @Override
@@ -46,7 +54,6 @@ public class LocusDepthBCICodec extends AbstractBCICodec<LocusDepth> {
                                     "refer to a single sample, but the list of sample names is of " +
                                     "size=" + sampleNames.size());
         }
-        this.dict = dict;
         final String className = LocusDepth.class.getSimpleName();
         return new Writer<>(path,
                             new SVFeaturesHeader(className, LocusDepth.BCI_VERSION, dict, sampleNames),
@@ -57,6 +64,23 @@ public class LocusDepthBCICodec extends AbstractBCICodec<LocusDepth> {
     @Override
     public void encode( final LocusDepth locusDepth, final Writer<LocusDepth> writer )
             throws IOException {
-        locusDepth.write(writer.getStream(), dict);
+        final DataOutputStream dos = writer.getStream();
+        dos.writeInt(writer.getContigIndex(locusDepth.getContig()));
+        dos.writeInt(locusDepth.getStart());
+        dos.writeInt(writer.getSampleIndex(locusDepth.getSample()));
+        dos.writeByte(locusDepth.getRefCall());
+        dos.writeInt(locusDepth.getADepth());
+        dos.writeInt(locusDepth.getCDepth());
+        dos.writeInt(locusDepth.getGDepth());
+        dos.writeInt(locusDepth.getTDepth());
+    }
+
+    @Override
+    public Comparator<LocusDepth> getSameLocusComparator() { return LocusDepth.comparator; }
+
+    @Override
+    public void resolveSameLocusFeatures( final PriorityQueue<LocusDepth> queue,
+                                          final Writer<LocusDepth> sink ) {
+        LocusDepth.resolveSameLocusFeatures(queue, sink);
     }
 }

@@ -11,7 +11,9 @@ import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writ
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class BafEvidenceBCICodec extends AbstractBCICodec<BafEvidence> {
     private boolean versionChecked = false;
@@ -61,5 +63,14 @@ public class BafEvidenceBCICodec extends AbstractBCICodec<BafEvidence> {
         dos.writeInt(writer.getContigIndex(bafEvidence.getContig()));
         dos.writeInt(bafEvidence.getStart());
         dos.writeDouble(bafEvidence.getValue());
+    }
+
+    @Override
+    public Comparator<BafEvidence> getSameLocusComparator() { return BafEvidence.comparator; }
+
+    @Override
+    public void resolveSameLocusFeatures( final PriorityQueue<BafEvidence> queue,
+                                          final Writer<BafEvidence> os ) {
+        BafEvidence.resolveSameLocusFeatures(queue, os);
     }
 }

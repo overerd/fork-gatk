@@ -11,7 +11,9 @@ import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writ
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class SplitReadEvidenceBCICodec extends AbstractBCICodec<SplitReadEvidence> {
     private boolean versionChecked = false;
@@ -63,5 +65,14 @@ public class SplitReadEvidenceBCICodec extends AbstractBCICodec<SplitReadEvidenc
         dos.writeInt(srEvidence.getStart());
         dos.writeInt(srEvidence.getCount());
         dos.writeBoolean(srEvidence.getStrand());
+    }
+
+    @Override
+    public Comparator<SplitReadEvidence> getSameLocusComparator() { return SplitReadEvidence.comparator; }
+
+    @Override
+    public void resolveSameLocusFeatures( PriorityQueue<SplitReadEvidence> queue,
+                                          Writer<SplitReadEvidence> sink ) {
+        SplitReadEvidence.resolveSameLocusFeatures(queue, sink);
     }
 }
