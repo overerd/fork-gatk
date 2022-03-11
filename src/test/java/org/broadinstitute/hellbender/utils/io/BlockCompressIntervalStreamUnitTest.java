@@ -88,7 +88,7 @@ public class BlockCompressIntervalStreamUnitTest extends GATKBaseTest {
     public void testRoundTrip() {
         final ByteArrayOutputStream os = new ByteArrayOutputStream(200000);
         final SVFeaturesHeader header =
-                new SVFeaturesHeader(SimpleFeature.class.getSimpleName(), "1", dict, Collections.emptyList());
+                new SVFeaturesHeader(SimpleFeature.class.getSimpleName(), "1", dict, Collections.singletonList("sample"));
         final Writer<SimpleFeature> writer =
                 new Writer<>("in-memory stream", os, header, BlockCompressIntervalStreamUnitTest::write);
         for ( final SAMSequenceRecord rec : dict.getSequences() ) {
@@ -120,7 +120,7 @@ public class BlockCompressIntervalStreamUnitTest extends GATKBaseTest {
     public void testQuery() throws IOException {
         final ByteArrayOutputStream os = new ByteArrayOutputStream(200000);
         final SVFeaturesHeader header =
-                new SVFeaturesHeader(SimpleFeature.class.getSimpleName(), "1", dict, Collections.emptyList());
+                new SVFeaturesHeader(SimpleFeature.class.getSimpleName(), "1", dict, Collections.singletonList("sample"));
         final Writer<SimpleFeature> writer =
                 new Writer<>("in-memory stream", os, header, BlockCompressIntervalStreamUnitTest::write);
 
