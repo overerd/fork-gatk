@@ -237,7 +237,7 @@ task ExtractTask {
 
     df -h
 
-    if [ ~{do_not_filter_override} = 'true' ]; then
+   if [ ~{do_not_filter_override} = 'true' ]; then
       FILTERING_ARGS=''
     else
       FILTERING_ARGS='--filter-set-info-table ~{fq_filter_set_info_table}
