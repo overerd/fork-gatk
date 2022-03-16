@@ -16,7 +16,6 @@ env:
   HELLBENDER_TEST_LOGS: /hellbender-test-logs/build_reports/
   HELLBENDER_TEST_PROJECT: broad-dsde-dev
   HELLBENDER_JSON_SERVICE_ACCOUNT_KEY: servicekey.json
-  GOOGLE_CLOUD_PROJECT: ${{HELLBENDER_TEST_PROJECT}}
   TEST_VERBOSITY: minimal
 jobs:
   test:
@@ -61,12 +60,13 @@ jobs:
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+          project_id: ${{ env.HELLBENDER_TEST_PROJECT }}
+          credentials_file_path: ${{ HELLBENDER_JSON_SERVICE_ACCOUNT_KEY}}
+
 
       - name: 'Set up Cloud SDK'
         uses: google-github-actions/setup-gcloud@v0
 
-      - name: Copy GCP credentials to a local file
-        run:  echo ${{ secrets.GCP_CREDENTIAS }} > ${{ env.HELLBENDER_JSON_SERVICE_ACCOUNT_KEY }}
 
       - name: Run tests
         run: ./gradlew test jacocoTestReport
@@ -85,8 +85,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Test WDL Generation
     env:
-      CROMWELL_JAR: ${{HOME}}/cromwell-{{CROMWELL_VERSION}}.jar
-      WOMTOOL_JAR: ${{HOME}}/womtool-{{CROMWELL_VERSION}}.jar
+      CROMWELL_JAR: ${{HOME}}/cromwell-${{CROMWELL_VERSION}}.jar
+      WOMTOOL_JAR: ${{HOME}}/womtool-${{CROMWELL_VERSION}}.jar
     steps:
       - name: Download Cromwell and Womtools
         run: |
