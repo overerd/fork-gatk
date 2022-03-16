@@ -86,7 +86,7 @@ jobs:
     name: Test WDL Generation
     steps:
       - name: Set Cromwell env variables
-        run |
+        run: |
           echo "CROMWELL_JAR=${HOME}/cromwell-${CROMWELL_VERSION}.jar" >> $GITHUB_ENV;
           echo "WOMTOOL_JAR=${HOME}/womtool-${CROMWELL_VERSION}.jar;
       - name: Download Cromwell and Womtools
