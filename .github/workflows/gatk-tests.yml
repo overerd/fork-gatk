@@ -61,7 +61,7 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
           project_id: ${{ env.HELLBENDER_TEST_PROJECT }}
-          credentials_file_path: ${{ HELLBENDER_JSON_SERVICE_ACCOUNT_KEY}}
+          credentials_file_path: ${{ env.HELLBENDER_JSON_SERVICE_ACCOUNT_KEY}}
 
 
       - name: 'Set up Cloud SDK'
@@ -85,13 +85,13 @@ jobs:
     runs-on: ubuntu-latest
     name: Test WDL Generation
     env:
-      CROMWELL_JAR: ${{HOME}}/cromwell-${{CROMWELL_VERSION}}.jar
-      WOMTOOL_JAR: ${{HOME}}/womtool-${{CROMWELL_VERSION}}.jar
+      CROMWELL_JAR: ${{env.HOME}}/cromwell-${{env.CROMWELL_VERSION}}.jar
+      WOMTOOL_JAR: ${{env.HOME}}/womtool-${{env.CROMWELL_VERSION}}.jar
     steps:
       - name: Download Cromwell and Womtools
         run: |
-          wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/51/cromwell-51.jar;
-          wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/51/womtool-51.jar;
+          wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/${CROMWELL_VERSION}/cromwell-${CROMWELL_VERSION}.jar;
+          wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/${CROMWELL_VERSION}/womtool-${CROMWELL_VERSION}.jar;
 
       - uses: actions/checkout@v2
         with:
