@@ -61,20 +61,26 @@ jobs:
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
       - name: 'Set up Cloud SDK'
         uses: google-github-actions/setup-gcloud@v0
+
       - name: Copy GCP credentials to a local file
         run:  echo ${{ secrets.GCP_CREDENTIAS }} > ${{ HELLBENDER_JSON_SERVICE_ACCOUNT_KEY }}
+
       - name: Run tests
         run: ./gradlew test jacocoTestReport
+
       - name: Upload to codecov
         run:  bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-results-${{ matrix.Java }}
           path: build/reports/tests
+
   wdlGen:
     runs-on: ubuntu-latest
     name: Test WDL Generation
@@ -83,9 +89,10 @@ jobs:
       WOMTOOL_JAR: ${{HOME}}/womtool-{{CROMWELL_VERSION}}.jar
     steps:
       - name: Download Cromwell and Womtools
-      - run: |
+        run: |
           wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/51/cromwell-51.jar;
           wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/51/womtool-51.jar;
+
       - uses: actions/checkout@v2
         with:
           fetch: 0
@@ -95,8 +102,10 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
           cache: gradle
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
       - name: Run WDL Generation Test
         run: ./gradlew gatkWDLGenValidation
 
