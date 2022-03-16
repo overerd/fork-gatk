@@ -16,7 +16,7 @@ env:
   HELLBENDER_TEST_LOGS: /hellbender-test-logs/build_reports/
   HELLBENDER_TEST_PROJECT: broad-dsde-dev
   HELLBENDER_JSON_SERVICE_ACCOUNT_KEY: servicekey.json
-  GOOGLE_CLOUD_PROJECT: ${{ env.HELLBENDER_TEST_PROJECT}}
+  GOOGLE_CLOUD_PROJECT: ${{HELLBENDER_TEST_PROJECT}}
   TEST_VERBOSITY: minimal
 jobs:
   test:
@@ -66,7 +66,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0
 
       - name: Copy GCP credentials to a local file
-        run:  echo ${{ secrets.GCP_CREDENTIAS }} > ${{ HELLBENDER_JSON_SERVICE_ACCOUNT_KEY }}
+        run:  echo ${{ secrets.GCP_CREDENTIAS }} > ${{ env.HELLBENDER_JSON_SERVICE_ACCOUNT_KEY }}
 
       - name: Run tests
         run: ./gradlew test jacocoTestReport
