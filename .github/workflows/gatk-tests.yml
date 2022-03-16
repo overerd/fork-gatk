@@ -85,8 +85,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Test WDL Generation
     env:
-      CROMWELL_JAR: ${{github.workspace}}/cromwell-${{env.CROMWELL_VERSION}}.jar
-      WOMTOOL_JAR: ${{github.workspace}}/womtool-${{env.CROMWELL_VERSION}}.jar
+      CROMWELL_JAR: ${{github.workspace}}/cromwell-${{ env.CROMWELL_VERSION }}.jar
+      WOMTOOL_JAR: ${{github.workspace}}/womtool-${{ env.CROMWELL_VERSION }}.jar
     steps:
       - name: Download Cromwell and Womtools
         run: |
