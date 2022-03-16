@@ -37,7 +37,11 @@ jobs:
             testType: conda
       fail-fast: false
     continue-on-error: ${{ matrix.experimental }}
-    name: Java ${{ matrix.Java }} build and test
+    env:
+      TEST_TYPE: ${{ matrix.testType }}
+      SCALA_VERSION: ${{ matrix.testType }}
+
+    name: Java ${{ matrix.Java }} build and test ${{matrix.testType}}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -88,7 +92,7 @@ jobs:
       - name: Set Cromwell env variables
         run: |
           echo "CROMWELL_JAR=${HOME}/cromwell-${CROMWELL_VERSION}.jar" >> $GITHUB_ENV;
-          echo "WOMTOOL_JAR=${HOME}/womtool-${CROMWELL_VERSION}.jar;
+          echo "WOMTOOL_JAR=${HOME}/womtool-${CROMWELL_VERSION}.jar";
       - name: Download Cromwell and Womtools
         run: |
           wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/${CROMWELL_VERSION}/cromwell-${CROMWELL_VERSION}.jar;
