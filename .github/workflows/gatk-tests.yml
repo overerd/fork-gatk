@@ -3,7 +3,7 @@
 name: Build and Test GATK 4
 on:
   push:
-    branches: [master]
+    branches: [lb_github_actions]
   pull_request:
   workflow_dispatch:
 
