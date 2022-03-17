@@ -167,7 +167,7 @@ jobs:
 
       - name: pull docker
        # run: docker pull ${ REGISTRY }/${ IMAGE_NAME }}:${GITHUB_SHA}
-        run: docker pull $REGISTRY/broadinstitute/gatk:0cfdca57613dcceedf5dc049a2318f5b268f3f9b
+        run: docker pull "$REGISTRY/broadinstitute/gatk:0cfdca57613dcceedf5dc049a2318f5b268f3f9b"
       - name: run docker tests
         run:  |
           docker run \
