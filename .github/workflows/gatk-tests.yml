@@ -21,103 +21,103 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  buildDocker:
-    name: build docker images
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout gatk
-        uses: actions/checkout@v2
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=${{github.sha}}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java: [ 8, 11 ]
-        experimental: [false]
-        scalaVersion: [2.11, 2.12]
-        testType: [cloud, integration, unit, variantcalling, conda]
-        exclude:
-          - java: 11
-            scalaVersion: 2.11
-          - java: 8
-            scalaVersion: 2.12
-          - java: 11
-            testType: variantcalling
-          - java: 11
-            testType: conda
-      fail-fast: false
-    continue-on-error: ${{ matrix.experimental }}
-    env:
-      TEST_TYPE: ${{ matrix.testType }}
-      SCALA_VERSION: ${{ matrix.scalaVersion }}
-
-    name: Java ${{ matrix.Java }} build and test ${{matrix.testType}}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: 'Set up java ${{ matrix.Java }}'
-        uses: actions/setup-java@v2
-        with:
-          java-version: ${{ matrix.Java }}
-          distribution: 'adopt'
-          cache: gradle
-
-      - name: 'Grant execute permission for gradlew'
-        run: chmod +x gradlew
-
-      - name: 'Compile with Gradle'
-        run: ./gradlew compileJava
-
-      #Google Cloud stuff
-      - id: 'auth'
-        uses: google-github-actions/auth@v0
-        with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-          project_id: ${{ env.HELLBENDER_TEST_PROJECT }}
-          export_default_credentials: true
-          credentials_file_path: ${{ env.HELLBENDER_JSON_SERVICE_ACCOUNT_KEY}}
-
-      - name: 'Set up Cloud SDK'
-        uses: google-github-actions/setup-gcloud@v0
-
-      - name: Run tests
-        run: ./gradlew test jacocoTestReport
-
-      - name: Upload to codecov
-        run:  bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results-docker-${{ matrix.Java }}-${{ matrix.testType }}
-          path: build/reports/tests
+#  buildDocker:
+#    name: build docker images
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: checkout gatk
+#        uses: actions/checkout@v2
+#
+#      - name: Log in to the Container registry
+#        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+#        with:
+#          registry: ${{ env.REGISTRY }}
+#          username: ${{ github.actor }}
+#          password: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Extract metadata (tags, labels) for Docker
+#        id: meta
+#        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+#        with:
+#          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+#          tags: |
+#            type=raw,value=${{github.sha}}
+#
+#      - name: Build and push Docker image
+#        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+#        with:
+#          context: .
+#          push: true
+#          tags: ${{ steps.meta.outputs.tags }}
+#          labels: ${{ steps.meta.outputs.labels }}
+#
+#  test:
+#    runs-on: ubuntu-latest
+#    strategy:
+#      matrix:
+#        java: [ 8, 11 ]
+#        experimental: [false]
+#        scalaVersion: [2.11, 2.12]
+#        testType: [cloud, integration, unit, variantcalling, conda]
+#        exclude:
+#          - java: 11
+#            scalaVersion: 2.11
+#          - java: 8
+#            scalaVersion: 2.12
+#          - java: 11
+#            testType: variantcalling
+#          - java: 11
+#            testType: conda
+#      fail-fast: false
+#    continue-on-error: ${{ matrix.experimental }}
+#    env:
+#      TEST_TYPE: ${{ matrix.testType }}
+#      SCALA_VERSION: ${{ matrix.scalaVersion }}
+#
+#    name: Java ${{ matrix.Java }} build and test ${{matrix.testType}}
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - name: 'Set up java ${{ matrix.Java }}'
+#        uses: actions/setup-java@v2
+#        with:
+#          java-version: ${{ matrix.Java }}
+#          distribution: 'adopt'
+#          cache: gradle
+#
+#      - name: 'Grant execute permission for gradlew'
+#        run: chmod +x gradlew
+#
+#      - name: 'Compile with Gradle'
+#        run: ./gradlew compileJava
+#
+#      #Google Cloud stuff
+#      - id: 'auth'
+#        uses: google-github-actions/auth@v0
+#        with:
+#          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+#          project_id: ${{ env.HELLBENDER_TEST_PROJECT }}
+#          export_default_credentials: true
+#          credentials_file_path: ${{ env.HELLBENDER_JSON_SERVICE_ACCOUNT_KEY}}
+#
+#      - name: 'Set up Cloud SDK'
+#        uses: google-github-actions/setup-gcloud@v0
+#
+#      - name: Run tests
+#        run: ./gradlew test jacocoTestReport
+#
+#      - name: Upload to codecov
+#        run:  bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
+#
+#      - name: Upload test results
+#        if: always()
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: test-results-docker-${{ matrix.Java }}-${{ matrix.testType }}
+#          path: build/reports/tests
 
   testOnDocker:
-    needs: buildDocker
+   # needs: buildDocker
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -146,7 +146,7 @@ jobs:
 
       - name: set up test folders
         run: |
-          sudo ./gradlew clean shadowTestClassJar shadowTestJar;
+          ./gradlew clean shadowTestClassJar shadowTestJar;
           mkdir ./testJars;
           echo $( find ./build/libs/ -name "gatk*test.jar");
           cp -r $( find ./build/libs/ -name "gatk*test.jar" ) ./testJars;
@@ -156,11 +156,11 @@ jobs:
           cp scripts/docker/dockertest.gradle .;
 
       - name: pull docker
-        run: docker pull ${ REGISTRY }/${ IMAGE_NAME }}:${GITHUB_SHA}
-
+       # run: docker pull ${ REGISTRY }/${ IMAGE_NAME }}:${GITHUB_SHA}
+      docker pull ${ REGISTRY }/broadinstitute/gatk:0cfdca57613dcceedf5dc049a2318f5b268f3f9b
       - name: run docker tests
         run:  |
-          sudo docker run \
+          docker run \
             -v $(pwd):/gatkCloneMountPoint:cached \
             -v $(pwd)/testJars:/jars:cached \
             --rm \
@@ -170,9 +170,10 @@ jobs:
             -t ${ IMAGE_NAME }}:${GITHUB_SHA} \
             bash --init-file /gatk/gatkenv.rc /root/run_unit_tests.sh;
           TEST_EXIT_VALUE=$?;
-          sudo mkdir build/reports/tests/test \
-           && sudo cp -rp build/reports/tests/testOnPackagedReleaseJar/* build/reports/tests/test \
-           && sudo rm -r build/reports/tests/testOnPackagedReleaseJar;
+          $( exit ${TEST_EXIT_VALUE} );
+          mkdir build/reports/tests/test \
+           && cp -rp build/reports/tests/testOnPackagedReleaseJar/* build/reports/tests/test \
+           && rm -r build/reports/tests/testOnPackagedReleaseJar;
 
       - name: Upload to codecov
         run: bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
