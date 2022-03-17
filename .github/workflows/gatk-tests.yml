@@ -103,6 +103,11 @@ jobs:
 #      - name: 'Set up Cloud SDK'
 #        uses: google-github-actions/setup-gcloud@v0
 #
+#       - name: pull lfs files
+#         run: git lfs pull
+#      - name: compile test code
+#         run: ./gradlew compileTestJava
+#
 #      - name: Run tests
 #        run: ./gradlew test jacocoTestReport
 #
@@ -144,9 +149,11 @@ jobs:
           distribution: 'adopt'
           cache: gradle
 
-      - name: set up test folders
+      - name: build test jars
+        run: ./gradlew clean shadowTestClassJar shadowTestJar
+
+      - name: set up test folders and links
         run: |
-          ./gradlew clean shadowTestClassJar shadowTestJar;
           mkdir ./testJars;
           echo $( find ./build/libs/ -name "gatk*test.jar");
           cp -r $( find ./build/libs/ -name "gatk*test.jar" ) ./testJars;
@@ -155,9 +162,12 @@ jobs:
           chmod -R a+w build/reports/;
           cp scripts/docker/dockertest.gradle .;
 
+      - name: pull lfs files
+        run: git lfs pull
+
       - name: pull docker
        # run: docker pull ${ REGISTRY }/${ IMAGE_NAME }}:${GITHUB_SHA}
-        run: docker pull ${ REGISTRY }/broadinstitute/gatk:0cfdca57613dcceedf5dc049a2318f5b268f3f9b
+        run: docker pull $REGISTRY/broadinstitute/gatk:0cfdca57613dcceedf5dc049a2318f5b268f3f9b
       - name: run docker tests
         run:  |
           docker run \
