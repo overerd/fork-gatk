@@ -40,7 +40,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value={{github.sha}}
+            type=raw,value=${{github.sha}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
@@ -183,7 +183,7 @@ jobs:
         with:
           name: test-results-${{ matrix.Java }}-${{ matrix.testType }}
           path: build/reports/tests
-          
+
   wdlGen:
     runs-on: ubuntu-latest
     name: Test WDL Generation
