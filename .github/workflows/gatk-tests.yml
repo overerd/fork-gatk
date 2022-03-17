@@ -113,7 +113,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: test-results-${{ matrix.Java }}-${{ matrix.testType }}
+          name: test-results-docker-${{ matrix.Java }}-${{ matrix.testType }}
           path: build/reports/tests
 
   testOnDocker:
@@ -183,9 +183,7 @@ jobs:
         with:
           name: test-results-${{ matrix.Java }}-${{ matrix.testType }}
           path: build/reports/tests
-      echo docker run ${REMOVE_CONTAINER_STRING} -v  ${STAGING_ABSOLUTE_PATH}:/gatkCloneMountPoint -v  ${STAGING_ABSOLUTE_PATH}/testJars:/jars -t ${REPO_PRJ}:${GITHUB_TAG} bash /root/run_unit_tests.sh
-      docker run ${REMOVE_CONTAINER_STRING} -v  ${STAGING_ABSOLUTE_PATH}:/gatkCloneMountPoint -v  ${STAGING_ABSOLUTE_PATH}/testJars:/jars -t ${REPO_PRJ}:${GITHUB_TAG} bash /root/run_unit_tests.sh
-
+          
   wdlGen:
     runs-on: ubuntu-latest
     name: Test WDL Generation
