@@ -1,26 +1,27 @@
 package org.broadinstitute.hellbender.tools.sv;
 
-import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.Utils;
-import org.broadinstitute.hellbender.utils.codecs.FeatureSink;
 
-import java.util.Comparator;
 import java.util.Objects;
-import java.util.PriorityQueue;
 import java.util.Set;
 
+/**
+ * Documents evidence of reads (of some sample at some locus) that align well to reference for
+ * some portion of the read, and fails to align for another portion of the read.
+ * Strand actually refers to whether the fails-to-align bit is upstream (at the beginning of the read)
+ * or downstream (at the end of the read) relative to the part that aligns.  I think that
+ * strand==true, encoded as "right", means that the non-aligned part is at the end of the read.
+ * Unless maybe it means the opposite.
+ */
 public final class SplitReadEvidence implements SVFeature {
 
-    final String sample;
-    final String contig;
-    final int position;
-    final int count;
-    final boolean strand;
+    private final String sample;
+    private final String contig;
+    private final int position;
+    private final int count;
+    private final boolean strand;
 
     public final static String BCI_VERSION = "1.0";
-    public final static Comparator<SplitReadEvidence> comparator =
-            Comparator.comparing(SplitReadEvidence::getSample)
-                    .thenComparing((f1, f2) -> f1.strand == f2.strand ? 0 : f1.strand ? 1 : -1);
 
     public SplitReadEvidence( final String sample, final String contig, final int position,
                               final int count, final boolean strand ) {
@@ -80,24 +81,5 @@ public final class SplitReadEvidence implements SVFeature {
     @Override
     public int hashCode() {
         return Objects.hash(sample, contig, position, count, strand);
-    }
-
-    public static void resolveSameLocusFeatures( final PriorityQueue<SplitReadEvidence> queue,
-                                                 final FeatureSink<SplitReadEvidence> sink ) {
-        if ( queue.isEmpty() ) {
-            return;
-        }
-        SplitReadEvidence lastEvidence = queue.poll();
-        while ( !queue.isEmpty() ) {
-            final SplitReadEvidence evidence = queue.poll();
-            if ( comparator.compare(lastEvidence, evidence) == 0 ) {
-                throw new UserException("Two instances of SplitReadEvidence for sample " +
-                        evidence.sample + " at " + evidence.contig + ":" + evidence.position +
-                        (evidence.strand ? " right" : " left"));
-            }
-            sink.write(lastEvidence);
-            lastEvidence = evidence;
-        }
-        sink.write(lastEvidence);
     }
 }

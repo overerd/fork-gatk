@@ -1,22 +1,19 @@
 package org.broadinstitute.hellbender.tools.sv;
 
-import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.Utils;
-import org.broadinstitute.hellbender.utils.codecs.FeatureSink;
 
 import java.util.*;
 
+/** Read counts for an indefinite number of samples on some interval. */
 public final class DepthEvidence implements SVFeature {
-
-    final String contig;
-    final int start;
-    final int end;
-    final int[] counts;
+    private final String contig;
+    private final int start;
+    private final int end;
+    private final int[] counts;
 
     public static final String BCI_VERSION = "1.0";
     public static final int MISSING_DATA = -1;
-    public static final Comparator<DepthEvidence> comparator = (f1, f2) -> 0;
 
     public DepthEvidence(final String contig, int start, final int end, final int[] counts) {
         Utils.nonNull(contig);
@@ -77,34 +74,5 @@ public final class DepthEvidence implements SVFeature {
         int result = Objects.hash(contig, start, end);
         result = 31 * result + Arrays.hashCode(counts);
         return result;
-    }
-
-    public static void resolveSameLocusFeatures( final PriorityQueue<DepthEvidence> queue,
-                                                 final FeatureSink<DepthEvidence> sink ) {
-        if ( queue.isEmpty() ) {
-            return;
-        }
-        final DepthEvidence evidence = queue.poll();
-        final int[] evCounts = evidence.counts;
-        while ( !queue.isEmpty() ) {
-            final DepthEvidence tmp = queue.poll();
-            final int[] tmpCounts = tmp.counts;
-            if ( evCounts.length != tmpCounts.length ) {
-                throw new GATKException("All DepthEvidence ought to have the same sample list at this point.");
-            }
-            for ( int idx = 0; idx != evCounts.length; ++idx ) {
-                final int count = tmpCounts[idx];
-                if ( count != MISSING_DATA ) {
-                    if ( evCounts[idx] == MISSING_DATA ) {
-                        evCounts[idx] = tmpCounts[idx];
-                    } else {
-                        throw new UserException("Multiple sources for count of sample#" + (idx+1) +
-                                " at " + evidence.getContig() + ":" + evidence.getStart() + "-" +
-                                evidence.getEnd());
-                    }
-                }
-            }
-        }
-        sink.write(evidence);
     }
 }

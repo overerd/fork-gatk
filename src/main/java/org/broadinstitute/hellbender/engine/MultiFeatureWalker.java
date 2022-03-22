@@ -13,11 +13,11 @@ import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
 import java.util.*;
 
 /**
- * A FeatureMergingWalker is a tool that presents one {@link Feature} at a time in sorted order from
- * multiple sources of Features.
+ * A MultiFeatureWalker is a tool that presents one {@link Feature} at a time in sorted order from
+ * multiple sources of Features.  The input files for each feature must be sorted by locus.
  *
  * To use this walker you need only implement the abstract apply method in a class that declares
- * a list of FeatureInputs as an argument.
+ * a collection of FeatureInputs as an argument.
  */
 public abstract class MultiFeatureWalker<F extends Feature> extends WalkerBase {
 
@@ -87,6 +87,15 @@ public abstract class MultiFeatureWalker<F extends Feature> extends WalkerBase {
      */
     public Set<String> getSampleNames() { return samples; }
 
+    /**
+     * Each feature input may have its own dictionary, and the user can specify an additional master
+     * dictionary and reference dictionary and reads dictionary.  This method makes certain that all
+     * of these dictionaries are consistent with regard to contig name and order.  It's OK if one
+     * dictionary is a subset of another:  we'll choose the more comprehensive dictionary.
+     * (Can't use the getBestAvailableSequenceDictionary method -- it throws if there are multiple
+     * dictionaries available.)
+     * This method also concatenates the sample names available from each feature input.
+     */
     private void setDictionaryAndSamples() {
         dictionary = getMasterSequenceDictionary();
         if ( hasReference() ) {

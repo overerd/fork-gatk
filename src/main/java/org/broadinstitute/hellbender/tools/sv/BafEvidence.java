@@ -1,23 +1,18 @@
 package org.broadinstitute.hellbender.tools.sv;
 
-import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.Utils;
-import org.broadinstitute.hellbender.utils.codecs.FeatureSink;
 
-import java.util.Comparator;
 import java.util.Objects;
-import java.util.PriorityQueue;
 import java.util.Set;
 
+/** Biallelic-frequency of a sample at some locus. */
 public final class BafEvidence implements SVFeature {
-    final String sample;
-    final String contig;
-    final int position;
-    final double value;
+    private final String sample;
+    private final String contig;
+    private final int position;
+    private final double value;
 
     public final static String BCI_VERSION = "1.0";
-    public static final Comparator<BafEvidence> comparator =
-            Comparator.comparing(BafEvidence::getSample);
 
     public BafEvidence( final String sample, final String contig,
                         final int position, final double value ) {
@@ -71,23 +66,5 @@ public final class BafEvidence implements SVFeature {
     @Override
     public int hashCode() {
         return Objects.hash(sample, contig, position, value);
-    }
-
-    public static void resolveSameLocusFeatures( final PriorityQueue<BafEvidence> queue,
-                                                 final FeatureSink<BafEvidence> sink ) {
-        if ( queue.isEmpty() ) {
-            return;
-        }
-        BafEvidence lastEvidence = queue.poll();
-        while ( !queue.isEmpty() ) {
-            final BafEvidence evidence = queue.poll();
-            if ( comparator.compare(lastEvidence, evidence) == 0 ) {
-                throw new UserException("Two instances of BafEvidence for sample " +
-                        evidence.sample + " at " + evidence.contig + ":" + evidence.position);
-            }
-            sink.write(lastEvidence);
-            lastEvidence = evidence;
-        }
-        sink.write(lastEvidence);
     }
 }

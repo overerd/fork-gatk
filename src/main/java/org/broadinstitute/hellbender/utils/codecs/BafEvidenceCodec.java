@@ -8,13 +8,13 @@ import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.readers.LineIterator;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.tools.sv.BafEvidence;
+import org.broadinstitute.hellbender.tools.sv.BafEvidenceSortMerger;
 import org.broadinstitute.hellbender.utils.io.FeatureOutputStream;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 
+/** Codec to handle BafEvidence in tab-delimited text files */
 public class BafEvidenceCodec extends AsciiFeatureCodec<BafEvidence>
         implements FeatureOutputCodec<BafEvidence, FeatureOutputStream<BafEvidence>> {
 
@@ -70,6 +70,14 @@ public class BafEvidenceCodec extends AsciiFeatureCodec<BafEvidence>
         os.write(ev);
     }
 
+    @Override
+    public FeatureSink<BafEvidence> makeSortMerger( final GATKPath path,
+                                                    final SAMSequenceDictionary dict,
+                                                    final List<String> sampleNames,
+                                                    final int compressionLevel ) {
+        return new BafEvidenceSortMerger(dict, makeSink(path, dict, sampleNames, compressionLevel));
+    }
+
     public static String encode( final BafEvidence ev ) {
         final List<String> columns = Arrays.asList(
                 ev.getContig(),
@@ -78,14 +86,5 @@ public class BafEvidenceCodec extends AsciiFeatureCodec<BafEvidence>
                 ev.getSample()
         );
         return String.join(COL_DELIMITER, columns);
-    }
-
-    @Override
-    public Comparator<BafEvidence> getSameLocusComparator() { return BafEvidence.comparator; }
-
-    @Override
-    public void resolveSameLocusFeatures( final PriorityQueue<BafEvidence> queue,
-                                          final FeatureOutputStream<BafEvidence> os ) {
-        BafEvidence.resolveSameLocusFeatures(queue, os);
     }
 }

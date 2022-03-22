@@ -4,6 +4,7 @@ import htsjdk.samtools.SAMSequenceDictionary;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.tools.sv.BafEvidence;
+import org.broadinstitute.hellbender.tools.sv.BafEvidenceSortMerger;
 import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Reader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writer;
@@ -11,10 +12,9 @@ import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writ
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 
+/** Codec to handle BafEvidence in BlockCompressedInterval files */
 public class BafEvidenceBCICodec extends AbstractBCICodec<BafEvidence> {
     private boolean versionChecked = false;
     private static final String BAF_BCI_FILE_EXTENSION = ".baf.bci";
@@ -66,11 +66,10 @@ public class BafEvidenceBCICodec extends AbstractBCICodec<BafEvidence> {
     }
 
     @Override
-    public Comparator<BafEvidence> getSameLocusComparator() { return BafEvidence.comparator; }
-
-    @Override
-    public void resolveSameLocusFeatures( final PriorityQueue<BafEvidence> queue,
-                                          final Writer<BafEvidence> os ) {
-        BafEvidence.resolveSameLocusFeatures(queue, os);
+    public FeatureSink<BafEvidence> makeSortMerger( final GATKPath path,
+                                                    final SAMSequenceDictionary dict,
+                                                    final List<String> sampleNames,
+                                                    final int compressionLevel ) {
+        return new BafEvidenceSortMerger(dict, makeSink(path, dict, sampleNames, compressionLevel));
     }
 }

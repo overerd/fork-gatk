@@ -2,11 +2,10 @@ package org.broadinstitute.hellbender.tools.sv;
 
 import com.google.common.annotations.VisibleForTesting;
 import htsjdk.samtools.util.Locatable;
-import org.broadinstitute.hellbender.exceptions.UserException;
-import org.broadinstitute.hellbender.utils.codecs.FeatureSink;
 
 import java.util.*;
 
+/** The read depth of each base call for a sample at some locus. */
 @VisibleForTesting
 public final class LocusDepth implements SVFeature {
     private final String contig;
@@ -15,8 +14,6 @@ public final class LocusDepth implements SVFeature {
     private final byte refCall; // index into nucleotideValues
     private final int[] depths;
     public final static String BCI_VERSION = "1.0";
-    public final static Comparator<LocusDepth> comparator =
-            Comparator.comparing(LocusDepth::getSample);
 
     public LocusDepth( final Locatable loc, final String sample, final byte refCall ) {
         this.contig = loc.getContig();
@@ -96,22 +93,5 @@ public final class LocusDepth implements SVFeature {
     public String toString() {
         return contig + "\t" + position + "\t" + sample + "\t" + (char)refCall + "\t" +
                 depths[0] + "\t" + depths[1] + "\t" + depths[2] + "\t" + depths[3];
-    }
-    public static void resolveSameLocusFeatures( final PriorityQueue<LocusDepth> queue,
-                                                 final FeatureSink<LocusDepth> sink ) {
-        if ( queue.isEmpty() ) {
-            return;
-        }
-        LocusDepth lastEvidence = queue.poll();
-        while ( !queue.isEmpty() ) {
-            final LocusDepth evidence = queue.poll();
-            if ( comparator.compare(lastEvidence, evidence) == 0 ) {
-                throw new UserException("Two instances of LocusDepth for sample " +
-                        evidence.sample + " at " + evidence.contig + ":" + evidence.position);
-            }
-            sink.write(lastEvidence);
-            lastEvidence = evidence;
-        }
-        sink.write(lastEvidence);
     }
 }

@@ -2,13 +2,11 @@ package org.broadinstitute.hellbender.tools.sv;
 
 
 import org.broadinstitute.hellbender.utils.Utils;
-import org.broadinstitute.hellbender.utils.codecs.FeatureSink;
 
-import java.util.Comparator;
 import java.util.Objects;
-import java.util.PriorityQueue;
 import java.util.Set;
 
+/** Documents evidence of a too-close or too-far-apart read pair. */
 public final class DiscordantPairEvidence implements SVFeature {
 
     final String sample;
@@ -20,8 +18,6 @@ public final class DiscordantPairEvidence implements SVFeature {
     final boolean endStrand;
 
     public final static String BCI_VERSION = "1.0";
-    public final static Comparator<DiscordantPairEvidence> comparator =
-            Comparator.comparing(DiscordantPairEvidence::getSample);
 
     public DiscordantPairEvidence(final String sample,
                                   final String startContig, final int start, final boolean startStrand,
@@ -101,12 +97,5 @@ public final class DiscordantPairEvidence implements SVFeature {
     @Override
     public int hashCode() {
         return Objects.hash(sample, startContig, endContig, start, end, startStrand, endStrand);
-    }
-
-    public static void resolveSameLocusFeatures( final PriorityQueue<DiscordantPairEvidence> queue,
-                                                 final FeatureSink<DiscordantPairEvidence> sink ) {
-        while ( !queue.isEmpty() ) {
-            sink.write(queue.poll());
-        }
     }
 }

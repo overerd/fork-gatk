@@ -3,18 +3,16 @@ package org.broadinstitute.hellbender.utils.codecs;
 import htsjdk.samtools.SAMSequenceDictionary;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.exceptions.UserException;
-import org.broadinstitute.hellbender.tools.sv.DepthEvidence;
-import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
+import org.broadinstitute.hellbender.tools.sv.*;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Reader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writer;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 
+/** Codec to handle DepthEvidence in BlockCompressedInterval files */
 public class DepthEvidenceBCICodec extends AbstractBCICodec<DepthEvidence> {
     private boolean versionChecked = false;
     private static final String RD_BCI_FILE_EXTENSION = ".rd.bci";
@@ -75,11 +73,10 @@ public class DepthEvidenceBCICodec extends AbstractBCICodec<DepthEvidence> {
     }
 
     @Override
-    public Comparator<DepthEvidence> getSameLocusComparator() { return DepthEvidence.comparator; }
-
-    @Override
-    public void resolveSameLocusFeatures( final PriorityQueue<DepthEvidence> queue,
-                                          final Writer<DepthEvidence> sink ) {
-        DepthEvidence.resolveSameLocusFeatures(queue, sink);
+    public FeatureSink<DepthEvidence> makeSortMerger( final GATKPath path,
+                                                      final SAMSequenceDictionary dict,
+                                                      final List<String> sampleNames,
+                                                      final int compressionLevel ) {
+        return new DepthEvidenceSortMerger(dict, makeSink(path, dict, sampleNames, compressionLevel));
     }
 }

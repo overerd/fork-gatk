@@ -11,10 +11,9 @@ import org.broadinstitute.hellbender.tools.sv.DiscordantPairEvidence;
 import org.broadinstitute.hellbender.utils.io.FeatureOutputStream;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 
+/** Codec to handle DiscordantPairEvidence in tab-delimited text files */
 public class DiscordantPairEvidenceCodec extends AsciiFeatureCodec<DiscordantPairEvidence>
         implements FeatureOutputCodec<DiscordantPairEvidence, FeatureOutputStream<DiscordantPairEvidence>> {
 
@@ -79,6 +78,14 @@ public class DiscordantPairEvidenceCodec extends AsciiFeatureCodec<DiscordantPai
         os.write(ev);
     }
 
+    @Override
+    public FeatureSink<DiscordantPairEvidence> makeSortMerger( final GATKPath path,
+                                                               final SAMSequenceDictionary dict,
+                                                               final List<String> sampleNames,
+                                                               final int compressionLevel ) {
+        return makeSink(path, dict, sampleNames, compressionLevel);
+    }
+
     public static String encode(final DiscordantPairEvidence ev) {
         final List<String> columns = Arrays.asList(
                 ev.getContig(),
@@ -90,16 +97,5 @@ public class DiscordantPairEvidenceCodec extends AsciiFeatureCodec<DiscordantPai
                 ev.getSample()
         );
         return String.join(COL_DELIMITER, columns);
-    }
-
-    @Override
-    public Comparator<DiscordantPairEvidence> getSameLocusComparator() {
-        return DiscordantPairEvidence.comparator;
-    }
-
-    @Override
-    public void resolveSameLocusFeatures( final PriorityQueue<DiscordantPairEvidence> queue,
-                                          final FeatureOutputStream<DiscordantPairEvidence> sink ) {
-        DiscordantPairEvidence.resolveSameLocusFeatures(queue, sink);
     }
 }

@@ -8,6 +8,10 @@ import org.broadinstitute.hellbender.exceptions.UserException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class knows about all FeatureOutputCodec implementations, and allows you to find an
+ * appropriate codec to create a given file type.
+ */
 public final class FeatureOutputCodecFinder {
 
     private static final List<FeatureOutputCodec<? extends Feature, ? extends FeatureSink<?>>> outputCodecs =

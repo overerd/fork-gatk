@@ -4,6 +4,7 @@ import htsjdk.samtools.SAMSequenceDictionary;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.tools.sv.LocusDepth;
+import org.broadinstitute.hellbender.tools.sv.LocusDepthSortMerger;
 import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Reader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writer;
@@ -11,10 +12,9 @@ import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writ
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 
+/** Codec to handle LocusDepths in BlockCompressedInterval files */
 public class LocusDepthBCICodec extends AbstractBCICodec<LocusDepth> {
     private boolean versionChecked = false;
     private static final String LD_BCI_FILE_EXTENSION = ".ld.bci";
@@ -76,11 +76,10 @@ public class LocusDepthBCICodec extends AbstractBCICodec<LocusDepth> {
     }
 
     @Override
-    public Comparator<LocusDepth> getSameLocusComparator() { return LocusDepth.comparator; }
-
-    @Override
-    public void resolveSameLocusFeatures( final PriorityQueue<LocusDepth> queue,
-                                          final Writer<LocusDepth> sink ) {
-        LocusDepth.resolveSameLocusFeatures(queue, sink);
+    public FeatureSink<LocusDepth> makeSortMerger( final GATKPath path,
+                                                   final SAMSequenceDictionary dict,
+                                                   final List<String> sampleNames,
+                                                   final int compressionLevel ) {
+        return new LocusDepthSortMerger(dict, makeSink(path, dict, sampleNames, compressionLevel));
     }
 }

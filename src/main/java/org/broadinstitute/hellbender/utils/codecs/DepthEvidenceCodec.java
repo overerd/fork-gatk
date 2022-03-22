@@ -9,14 +9,14 @@ import htsjdk.tribble.readers.LineIterator;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.tools.sv.DepthEvidence;
+import org.broadinstitute.hellbender.tools.sv.DepthEvidenceSortMerger;
 import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
 import org.broadinstitute.hellbender.utils.io.FeatureOutputStream;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 
+/** Codec to handle DepthEvidence in tab-delimited text files */
 public class DepthEvidenceCodec extends AsciiFeatureCodec<DepthEvidence>
         implements FeatureOutputCodec<DepthEvidence, FeatureOutputStream<DepthEvidence>> {
 
@@ -96,6 +96,14 @@ public class DepthEvidenceCodec extends AsciiFeatureCodec<DepthEvidence>
         os.write(ev);
     }
 
+    @Override
+    public FeatureSink<DepthEvidence> makeSortMerger( final GATKPath path,
+                                                              final SAMSequenceDictionary dict,
+                                                              final List<String> sampleNames,
+                                                              final int compressionLevel ) {
+        return new DepthEvidenceSortMerger(dict, makeSink(path, dict, sampleNames, compressionLevel));
+    }
+
     public static String encode(final DepthEvidence ev) {
         final int[] counts = ev.getCounts();
         final int numCounts = counts.length;
@@ -107,14 +115,5 @@ public class DepthEvidenceCodec extends AsciiFeatureCodec<DepthEvidence>
             columns.add(Integer.toString(count));
         }
         return String.join(COL_DELIMITER, columns);
-    }
-
-    @Override
-    public Comparator<DepthEvidence> getSameLocusComparator() { return DepthEvidence.comparator; }
-
-    @Override
-    public void resolveSameLocusFeatures( final PriorityQueue<DepthEvidence> queue,
-                                          final FeatureOutputStream<DepthEvidence> sink ) {
-        DepthEvidence.resolveSameLocusFeatures(queue, sink);
     }
 }

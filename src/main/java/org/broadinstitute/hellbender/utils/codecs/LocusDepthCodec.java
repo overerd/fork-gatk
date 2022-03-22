@@ -9,12 +9,12 @@ import htsjdk.tribble.readers.LineIterator;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.tools.sv.LocusDepth;
+import org.broadinstitute.hellbender.tools.sv.LocusDepthSortMerger;
 import org.broadinstitute.hellbender.utils.io.FeatureOutputStream;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 
+/** Codec to handle LocusDepths in tab-delimited text files */
 public class LocusDepthCodec extends AsciiFeatureCodec<LocusDepth>
         implements FeatureOutputCodec<LocusDepth, FeatureOutputStream<LocusDepth>> {
     public static final String FORMAT_SUFFIX = ".ld.txt";
@@ -76,19 +76,18 @@ public class LocusDepthCodec extends AsciiFeatureCodec<LocusDepth>
         os.write(ev);
     }
 
+    @Override
+    public FeatureSink<LocusDepth> makeSortMerger( final GATKPath path,
+                                                   final SAMSequenceDictionary dict,
+                                                   final List<String> sampleNames,
+                                                   final int compressionLevel ) {
+        return new LocusDepthSortMerger(dict, makeSink(path, dict, sampleNames, compressionLevel));
+    }
+
     public static String encode( final LocusDepth locusDepth ) {
         return locusDepth.getContig() + "\t" + (locusDepth.getStart() - 1) + "\t" +
                 locusDepth.getSample() + "\t" + locusDepth.getRefCall() + "\t" +
                 locusDepth.getADepth() + "\t" + locusDepth.getCDepth() + "\t" +
                 locusDepth.getGDepth() + "\t" + locusDepth.getTDepth();
-    }
-
-    @Override
-    public Comparator<LocusDepth> getSameLocusComparator() { return LocusDepth.comparator; }
-
-    @Override
-    public void resolveSameLocusFeatures( final PriorityQueue<LocusDepth> queue,
-                                          final FeatureOutputStream<LocusDepth> sink ) {
-        LocusDepth.resolveSameLocusFeatures(queue, sink);
     }
 }

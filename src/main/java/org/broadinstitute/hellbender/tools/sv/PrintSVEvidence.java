@@ -12,14 +12,14 @@ import org.broadinstitute.hellbender.engine.MultiFeatureWalker;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
-import org.broadinstitute.hellbender.utils.IntervalUtils;
 import org.broadinstitute.hellbender.utils.codecs.*;
 
 import java.util.*;
 
 @CommandLineProgramProperties(
-        summary = "Merges SV evidence records",
-        oneLineSummary = "Merges SV evidence records",
+        summary = "Merges multiple sources of SV evidence records of some particular feature type" +
+        " into a single output file.  Inputs must be locus-sorted.",
+        oneLineSummary = "Merges SV evidence records.",
         programGroup = StructuralVariantDiscoveryProgramGroup.class
 )
 @ExperimentalFeature
@@ -62,11 +62,8 @@ public class PrintSVEvidence extends MultiFeatureWalker<SVFeature> {
     )
     private int compressionLevel = 4;
 
-    private FeatureOutputCodec<SVFeature, FeatureSink<SVFeature>> outputCodec;
-    private FeatureSink<SVFeature> outputSink;
     private boolean noSampleFiltering = false;
-    private SVFeature currentLocus;
-    private PriorityQueue<SVFeature> sameLocusQueue;
+    private FeatureSink<SVFeature> outputSink;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -103,12 +100,10 @@ public class PrintSVEvidence extends MultiFeatureWalker<SVFeature> {
                 noSampleFiltering = true;
             }
         }
-        // the validity of these casts were checked at the beginning of this method
-        outputCodec = (FeatureOutputCodec<SVFeature, FeatureSink<SVFeature>>)codec;
-        outputSink = (FeatureSink<SVFeature>)codec.makeSink(outputFilePath, getDictionary(),
-                                                    new ArrayList<>(sampleNames), compressionLevel);
-        sameLocusQueue = new PriorityQueue<>(Math.max(30,sampleNames.size()),
-                                            (Comparator<SVFeature>)codec.getSameLocusComparator());
+
+        // the validity of this cast was checked at the beginning of this method
+        outputSink = (FeatureSink<SVFeature>)codec.makeSortMerger(outputFilePath,
+                                    getDictionary(), new ArrayList<>(sampleNames), compressionLevel);
     }
 
     @Override
@@ -122,20 +117,12 @@ public class PrintSVEvidence extends MultiFeatureWalker<SVFeature> {
                 return;
             }
         }
-        if ( currentLocus != null &&
-                IntervalUtils.compareLocatables(currentLocus, feature, getDictionary()) == 0 ) {
-            sameLocusQueue.add(feature);
-        } else {
-            outputCodec.resolveSameLocusFeatures(sameLocusQueue, outputSink);
-            currentLocus = feature;
-            sameLocusQueue.add(feature);
-        }
+        outputSink.write(feature);
     }
 
     @Override
     public Object onTraversalSuccess() {
         super.onTraversalSuccess();
-        outputCodec.resolveSameLocusFeatures(sameLocusQueue, outputSink);
         outputSink.close();
         return null;
     }

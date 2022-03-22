@@ -5,16 +5,16 @@ import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.tools.sv.SVFeaturesHeader;
 import org.broadinstitute.hellbender.tools.sv.SplitReadEvidence;
+import org.broadinstitute.hellbender.tools.sv.SplitReadEvidenceSortMerger;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Reader;
 import org.broadinstitute.hellbender.utils.io.BlockCompressedIntervalStream.Writer;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 
+/** Codec to handle SplitReadEvidence in BlockCompressedInterval files */
 public class SplitReadEvidenceBCICodec extends AbstractBCICodec<SplitReadEvidence> {
     private boolean versionChecked = false;
     private static final String SR_BCI_FILE_EXTENSION = ".sr.bci";
@@ -68,11 +68,10 @@ public class SplitReadEvidenceBCICodec extends AbstractBCICodec<SplitReadEvidenc
     }
 
     @Override
-    public Comparator<SplitReadEvidence> getSameLocusComparator() { return SplitReadEvidence.comparator; }
-
-    @Override
-    public void resolveSameLocusFeatures( PriorityQueue<SplitReadEvidence> queue,
-                                          Writer<SplitReadEvidence> sink ) {
-        SplitReadEvidence.resolveSameLocusFeatures(queue, sink);
+    public FeatureSink<SplitReadEvidence> makeSortMerger( final GATKPath path,
+                                                          final SAMSequenceDictionary dict,
+                                                          final List<String> sampleNames,
+                                                          final int compressionLevel ) {
+        return new SplitReadEvidenceSortMerger(dict, makeSink(path, dict, sampleNames, compressionLevel));
     }
 }
