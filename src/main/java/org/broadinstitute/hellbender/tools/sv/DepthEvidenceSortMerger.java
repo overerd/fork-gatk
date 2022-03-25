@@ -6,9 +6,6 @@ import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.IntervalUtils;
 import org.broadinstitute.hellbender.utils.codecs.FeatureSink;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.broadinstitute.hellbender.tools.sv.DepthEvidence.MISSING_DATA;
 
 /**
@@ -19,69 +16,59 @@ import static org.broadinstitute.hellbender.tools.sv.DepthEvidence.MISSING_DATA;
 public class DepthEvidenceSortMerger implements FeatureSink<DepthEvidence> {
     private final SAMSequenceDictionary dictionary;
     private final FeatureSink<DepthEvidence> outputSink;
-    private final List<DepthEvidence> sameLocusList;
-    private DepthEvidence currentLocus;
+    private DepthEvidence mergedEvidence;
 
     public DepthEvidenceSortMerger( final SAMSequenceDictionary dictionary,
-                                  final FeatureSink<DepthEvidence> outputSink ) {
+                                    final FeatureSink<DepthEvidence> outputSink ) {
         this.dictionary = dictionary;
         this.outputSink = outputSink;
-        sameLocusList = new ArrayList<>();
-        currentLocus = null;
+        this.mergedEvidence = null;
     }
 
     @Override
     public void write( final DepthEvidence feature ) {
-        if ( currentLocus == null ) {
-            currentLocus = feature;
-            sameLocusList.add(feature);
+        if ( mergedEvidence == null ) {
+            mergedEvidence = feature;
+            return;
+        }
+        int cmp = IntervalUtils.compareLocatables(mergedEvidence, feature, dictionary);
+        if ( cmp == 0 ) {
+            merge(feature);
+        } else if ( cmp < 0 ) {
+            outputSink.write(mergedEvidence);
+            mergedEvidence = feature;
         } else {
-            int cmp = IntervalUtils.compareLocatables(currentLocus, feature, dictionary);
-            if ( cmp == 0 ) {
-                sameLocusList.add(feature);
-            } else if ( cmp < 0 ) {
-                resolveSameLocusFeatures();
-                currentLocus = feature;
-                sameLocusList.add(feature);
-            } else {
-                throw new GATKException("features not presented in dictionary order");
-            }
+            throw new GATKException("features not presented in dictionary order");
         }
     }
 
     @Override
     public void close() {
-        resolveSameLocusFeatures();
+        if ( mergedEvidence != null ) {
+            outputSink.write(mergedEvidence);
+            mergedEvidence = null;
+        }
         outputSink.close();
     }
 
-    public void resolveSameLocusFeatures() {
-        if ( sameLocusList.isEmpty() ) {
-            return;
+    private void merge( final DepthEvidence evidence ) {
+        final int[] mergedCounts = mergedEvidence.getCounts();
+        final int nCounts = mergedCounts.length;
+        final int[] evidenceCounts = evidence.getCounts();
+        if ( nCounts != evidenceCounts.length ) {
+            throw new GATKException("All DepthEvidence ought to have the same sample list at this point.");
         }
-        final DepthEvidence evidence = sameLocusList.get(0);
-        final int nEles = sameLocusList.size();
-        final int[] counts = evidence.getCounts();
-        for ( int ele = 1; ele != nEles; ++ele ) {
-            final DepthEvidence tmp = sameLocusList.get(ele);
-            final int[] tmpCounts = tmp.getCounts();
-            if ( counts.length != tmpCounts.length ) {
-                throw new GATKException("All DepthEvidence ought to have the same sample list at this point.");
-            }
-            for ( int idx = 0; idx != counts.length; ++idx ) {
-                final int count = tmpCounts[idx];
-                if ( count != MISSING_DATA ) {
-                    if ( counts[idx] == MISSING_DATA ) {
-                        counts[idx] = tmpCounts[idx];
-                    } else {
-                        throw new UserException("Multiple sources for count of sample#" + (idx+1) +
-                                " at " + evidence.getContig() + ":" + evidence.getStart() + "-" +
-                                evidence.getEnd());
-                    }
+        for ( int idx = 0; idx != nCounts; ++idx ) {
+            final int count = evidenceCounts[idx];
+            if ( count != MISSING_DATA ) {
+                if ( mergedCounts[idx] == MISSING_DATA ) {
+                    mergedCounts[idx] = count;
+                } else {
+                    throw new UserException("Multiple sources for count of sample#" + (idx+1) +
+                            " at " + evidence.getContig() + ":" + evidence.getStart() + "-" +
+                            evidence.getEnd());
                 }
             }
         }
-        outputSink.write(evidence);
-        sameLocusList.clear();
     }
 }

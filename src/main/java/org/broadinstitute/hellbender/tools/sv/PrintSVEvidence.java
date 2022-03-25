@@ -15,10 +15,62 @@ import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.codecs.*;
 
 import java.util.*;
-
+/**
+ * <p>Merges locus-sorted files of evidence for structural variation into a single output file.</p>
+ * <p>The tool can also subset the inputs to specified genomic intervals, or to a specified list of samples.</p>
+ * <p>The evidence types and their files extensions are:</p>
+ * <dl>
+ *     <dt>BafEvidence</dt>
+ *     <dd>The biallelic frequency of a SNP in some sample at some locus.
+ *          File extensions are *.baf.txt, *.baf.txt.gz, or *.baf.bci.</dd>
+ *     <dt>DepthEvidence</dt>
+ *     <dd>The read counts of any number of samples on some interval.
+ *          File extensions are *.rd.txt, *.rd.txt.gz, or *.rd.bci.</dd>
+ *     <dt>DiscordantPairEvidence</dt>
+ *     <dd>Evidence of a read pair that spans a genomic distance that's too large or too small.
+ *          File extensions are *.pe.txt, *.pe.txt.gz, or *.pe.bci.</dd>
+ *     <dt>LocusDepth</dt>
+ *     <dd>The read counts of each base call for some sample at some locus.
+ *          File extensions are *.ld.txt, *.ld.txt.gz, or *.ld.bci.</dd>
+ *     <dt>SplitReadEvidence</dt>
+ *     <dd>The number of chimeric reads in some sample at some locus.
+ *          File extensions are *.sr.txt, *.sr.txt.gz, or *.sr.bci.</dd>
+ * </dl>
+ *
+ * <h3>Inputs</h3>
+ *
+ * <ul>
+ *     <li>
+ *         One or more evidence files.
+ *         These must be locus-sorted, and must all contain the same type of evidence.
+ *         <br />Or a file containing a list of evidence files, one per line.
+ *     </li>
+ *     <li>Optional:  A list of sample names to extract.</li>
+ * </ul>
+ *
+ * <h3>Output</h3>
+ *
+ * <ul>
+ *     <li>
+ *         An output file containing merged evidence from the inputs.
+ *     </li>
+ * </ul>
+ *
+ * <h3>Usage example</h3>
+ *
+ * <pre>
+ *     gatk SVCluster \
+ *       -F file1.baf.txt.gz [-F file2.baf.txt.gz ...] \
+ *       -O merged.baf.bci \
+ *       --sample-names sample1 [--sample-names sample2 ...]
+ * </pre>
+ *
+ * @author Ted Sharpe &lt;tsharpe@broadinstitute.org&gt;
+ */
 @CommandLineProgramProperties(
         summary = "Merges multiple sources of SV evidence records of some particular feature type" +
-        " into a single output file.  Inputs must be locus-sorted.",
+        " into a single output file.  Inputs must be locus-sorted." +
+        "  Can also subset by regions or samples.",
         oneLineSummary = "Merges SV evidence records.",
         programGroup = StructuralVariantDiscoveryProgramGroup.class
 )
