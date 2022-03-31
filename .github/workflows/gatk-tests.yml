@@ -72,7 +72,7 @@ jobs:
       TEST_TYPE: ${{ matrix.testType }}
       SCALA_VERSION: ${{ matrix.scalaVersion }}
 
-    name: Java ${{ matrix.Java }} build and test ${{ matrix.testType }}
+    #name: Java ${{ matrix.Java }} build and test ${{ matrix.testType }}
     steps:
       - uses: actions/checkout@v2
         with:
