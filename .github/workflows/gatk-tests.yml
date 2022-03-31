@@ -103,7 +103,7 @@ jobs:
       - name: pull lfs files
         run: git lfs pull
 
-      - name: compile test code"
+      - name: compile test code
         run: ./gradlew compileTestJava
 
       - name: Run tests
@@ -116,7 +116,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: test-results-docker-${{ matrix.Java }}-${{ matrix.testType }}
+          name: test-results-nodocker-${{ matrix.Java }}-${{ matrix.testType }}
           path: build/reports/tests
 
   testOnDocker:
