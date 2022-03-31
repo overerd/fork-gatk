@@ -48,76 +48,76 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-#  test:
-#    runs-on: ubuntu-latest
-#    strategy:
-#      matrix:
-#        java: [ 8, 11 ]
-#        experimental: [ false ]
-#        scalaVersion: [ 2.11, 2.12 ]
-#        testType: [ cloud, integration, unit, variantcalling, conda ]
-#        exclude:
-#          - java: 11
-#            scalaVersion: 2.11
-#          - java: 8
-#            scalaVersion: 2.12
-#          - java: 11
-#            testType: variantcalling
-#          - java: 11
-#            testType: conda
-#      fail-fast: false
-#    continue-on-error: ${{ matrix.experimental }}
-#    env:
-#      TEST_TYPE: ${{ matrix.testType }}
-#      SCALA_VERSION: ${{ matrix.scalaVersion }}
-#    name: Java ${{ matrix.Java }} build and test ${{ matrix.testType }}
-#    steps:
-#      - uses: actions/checkout@v2
-#        with:
-#          fetch-depth: 0
-#      - name: 'Set up java ${{ matrix.Java }}'
-#        uses: actions/setup-java@v2
-#        with:
-#          java-version: ${{ matrix.Java }}
-#          distribution: 'adopt'
-#          cache: gradle
-#
-#      - name: 'Grant execute permission for gradlew'
-#        run: chmod +x gradlew
-#
-#      - name: 'Compile with Gradle'
-#        run: ./gradlew compileJava
-#
-#      #Google Cloud stuff
-#      - id: 'auth'
-#        uses: google-github-actions/auth@v0
-#        with:
-#          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-#          project_id: ${{ env.HELLBENDER_TEST_PROJECT }}
-#          export_default_credentials: true
-#          credentials_file_path: ${{ env.HELLBENDER_JSON_SERVICE_ACCOUNT_KEY}}
-#
-#      - name: 'Set up Cloud SDK'
-#        uses: google-github-actions/setup-gcloud@v0
-#
-#      - name: pull lfs files
-#        run: git lfs pull
-#
-#      - name: compile test code"
-#        run: ./gradlew compileTestJava
-#
-#      - name: Run tests
-#        run: ./gradlew test jacocoTestReport
-#
-#      - name: Upload to codecov
-#        run: bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
-#
-#      - name: Upload test results
-#        if: always()
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: test-results-docker-${{ matrix.Java }}-${{ matrix.testType }}
-#          path: build/reports/tests
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ 8, 11 ]
+        experimental: [ false ]
+        scalaVersion: [ 2.11, 2.12 ]
+        testType: [ cloud, integration, unit, variantcalling, conda ]
+        exclude:
+          - java: 11
+            scalaVersion: 2.11
+          - java: 8
+            scalaVersion: 2.12
+          - java: 11
+            testType: variantcalling
+          - java: 11
+            testType: conda
+      fail-fast: false
+    continue-on-error: ${{ matrix.experimental }}
+    env:
+      TEST_TYPE: ${{ matrix.testType }}
+      SCALA_VERSION: ${{ matrix.scalaVersion }}
+    name: Java ${{ matrix.Java }} build and test ${{ matrix.testType }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: 'Set up java ${{ matrix.Java }}'
+        uses: actions/setup-java@v2
+        with:
+          java-version: ${{ matrix.Java }}
+          distribution: 'adopt'
+          cache: gradle
+
+      - name: 'Grant execute permission for gradlew'
+        run: chmod +x gradlew
+
+      - name: 'Compile with Gradle'
+        run: ./gradlew compileJava
+
+      #Google Cloud stuff
+      - id: 'auth'
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+          project_id: ${{ env.HELLBENDER_TEST_PROJECT }}
+          export_default_credentials: true
+          credentials_file_path: ${{ env.HELLBENDER_JSON_SERVICE_ACCOUNT_KEY}}
+
+      - name: 'Set up Cloud SDK'
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: pull lfs files
+        run: git lfs pull
+
+      - name: compile test code"
+        run: ./gradlew compileTestJava
+
+      - name: Run tests
+        run: ./gradlew test jacocoTestReport
+
+      - name: Upload to codecov
+        run: bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results-docker-${{ matrix.Java }}-${{ matrix.testType }}
+          path: build/reports/tests
 
   testOnDocker:
     needs: buildDocker
@@ -134,11 +134,11 @@ jobs:
       TEST_TYPE: ${{ matrix.testType }}
       SCALA_VERSION: ${{ matrix.scalaVersion }}
 
-    name: Java ${{ matrix.Java }} test on docker  ${{matrix.testType}}
+    name: Java ${{ matrix.Java }} test on docker ${{matrix.testType}}
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 0 #TODO make this shallow
 
       - name: 'Set up java ${{ matrix.Java }}'
         uses: actions/setup-java@v2
