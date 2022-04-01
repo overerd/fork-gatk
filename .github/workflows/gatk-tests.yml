@@ -269,6 +269,13 @@ jobs:
         with:
           CROMWELL_VERSION: ${{ env.CROMWELL_VERSION }}
 
+      - name: "Installing GATK for tests"
+        run: |
+          ./gradlew assemble;
+          ./gradlew installDist;
+          echo "building a shadow jar for the wdl";
+          ./gradlew shadowJar;
+
       - name: "CNV_GERMLINE_COHORT_WDL_TEST"
         if: ${{ matrix.wdlTest }} == RUN_CNV_GERMLINE_COHORT_WDL
         run: |
