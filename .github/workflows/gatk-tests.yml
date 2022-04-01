@@ -246,9 +246,9 @@ jobs:
           python scripts/travis/Reporter.py https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html;
 
 
-  wdlGen:
+  installCromwell:
     runs-on: ubuntu-latest
-    name: Test WDL Generation
+    name: Cromwell Local Setup
     steps:
       - name: Set Cromwell env variables
         run: |
@@ -258,7 +258,6 @@ jobs:
         run: |
           wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ env.CROMWELL_VERSION }}/cromwell-${{ env.CROMWELL_VERSION }}.jar;
           wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ env.CROMWELL_VERSION }}/womtool-${{ env.CROMWELL_VERSION }}.jar;
-
       - uses: actions/checkout@v2
         with:
           fetch: 0
@@ -269,10 +268,51 @@ jobs:
           distribution: 'adopt'
           cache: gradle
 
+  wdlGen:
+    runs-on: ubuntu-latest
+    name: Test WDL Generation
+    steps:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Run WDL Generation Test
         run: ./gradlew gatkWDLGenValidation
 
+  wdlTests:
+    runs-on: ubuntu-latest
+    name: Test WDL Generation
+    strategy:
+      matrix:
+        wdlTest: [ RUN_CNV_GERMLINE_COHORT_WDL, RUN_CNV_GERMLINE_CASE_WDL, RUN_CNV_SOMATIC_WDL, RUN_M2_WDL, RUN_CNN_WDL ]
+    steps:
+      - name: "CNV_GERMLINE_COHORT_WDL_TEST"
+        if: wdl == RUN_CNV_GERMLINE_COHORT_WDL
+        run: |
+          echo "Running CNV germline cohort workflow";
+          bash scripts/cnv_cromwell_tests/germline/run_cnv_germline_workflows.sh COHORT;
 
+      - name: "CNV_GERMLINE_CASE_WDL_TEST"
+        if: wdl == RUN_CNV_GERMLINE_CASE_WDL
+        run: |
+          echo "Running CNV germline case workflow";
+          bash scripts/cnv_cromwell_tests/germline/run_cnv_germline_workflows.sh CASE;
+
+      - name: "CNV_SOMATIC_WDL_TEST"
+        if: wdl == RUN_CNV_SOMATIC_WDL
+        run: |
+          echo "Running CNV somatic workflows";
+          bash scripts/cnv_cromwell_tests/somatic/run_cnv_somatic_workflows.sh;
+
+      - name: "M2_WDL_TEST"
+        if: wdl == RUN_M2_WDL
+        run: |
+          echo "Deleting some unused files before running M2 WDL...";
+          rm -Rf src/test/resources/large/VQSR;
+          echo "Running M2 WDL";
+          sudo bash scripts/m2_cromwell_tests/run_m2_wdl.sh;
+
+      - name: "CNN_WDL_TEST"
+        if: wdl == RUN_CNN_WDL
+        run: |
+          echo "Running CNN WDL";
+          sudo bash scripts/cnn_variant_cromwell_tests/run_cnn_variant_wdl.sh;
