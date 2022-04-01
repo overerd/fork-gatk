@@ -253,7 +253,7 @@ jobs:
     strategy:
       matrix:
         wdlTest: [ RUN_CNV_GERMLINE_COHORT_WDL, RUN_CNV_GERMLINE_CASE_WDL, RUN_CNV_SOMATIC_WDL, RUN_M2_WDL, RUN_CNN_WDL ]
-
+    continue-on-error: true
     name: WDL test ${{ matrix.wdlTest }} on cromwell
     steps:
       - uses: actions/checkout@v2
@@ -271,7 +271,7 @@ jobs:
 
       - name: "Exporting Environment Variables for Wdl Scripts"
         run: |
-          "TRAVIS_PULL_REQUEST=$[${{ github.event_name }} == 'pull_request'] " >> $GITHUB_ENV
+          "TRAVIS_PULL_REQUEST=$[[${{ github.event_name }} == 'pull_request']] " >> $GITHUB_ENV
           "TRAVIS_COMMIT=${{ github.sha }}" >> $GITHUB_ENV
 
       - name: "Installing GATK for tests"
