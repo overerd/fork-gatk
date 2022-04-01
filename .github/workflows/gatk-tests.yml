@@ -126,7 +126,7 @@ jobs:
           echo "See the test report at https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html";
 
       - name: Updating the PR travis results
-        if: github.event_name == 'pull_request' && !${{ TEST_EXIT_VALUE }}
+        if: github.event_name == 'pull_request' && failure()
         run:
           pip install --user PyGithub;
           python scripts/travis/Reporter.py https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html;
