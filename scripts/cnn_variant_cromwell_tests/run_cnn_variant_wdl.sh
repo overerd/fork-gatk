@@ -4,7 +4,7 @@ set -e
 script_path=$( cd "$(dirname "${BASH_SOURCE}")" ; pwd -P )
 cd "$script_path"
 
-WORKING_DIR=/home/runner/working/gatk
+WORKING_DIR=/home/runner/work/gatk
 
 set -e
 echo "Building docker image for CNN WDL tests (skipping unit tests)..."

@@ -16,7 +16,7 @@ cd "$script_path"
 ln -fs /home/travis/build/broadinstitute/gatk/scripts/cnv_wdl/cnv_common_tasks.wdl
 ln -fs /home/travis/build/broadinstitute/gatk/scripts/cnv_wdl/germline/cnv_germline_case_workflow.wdl
 
-WORKING_DIR=/home/runner/working/gatk
+WORKING_DIR=/home/runner/work/gatk
 
 pushd .
 echo "Building docker without running unit tests... ========="
