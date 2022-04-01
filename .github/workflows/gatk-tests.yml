@@ -285,6 +285,7 @@ jobs:
       - name: "CNV_GERMLINE_CASE_WDL_TEST"
         if: ${{ matrix.wdlTest }} == RUN_CNV_GERMLINE_CASE_WDL
         run: |
+          pwd
           echo "Running CNV germline case workflow";
           bash scripts/cnv_cromwell_tests/germline/run_cnv_germline_workflows.sh CASE;
 
