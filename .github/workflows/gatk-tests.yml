@@ -119,6 +119,19 @@ jobs:
           name: test-results-nodocker-${{ matrix.Java }}-${{ matrix.testType }}
           path: build/reports/tests
 
+      - name: Report failure Logs to PR
+        if: !${{ TEST_EXIT_VALUE }}
+        run: |
+          $GCLOUD_HOME/gsutil -m cp -z html -z js -z xml -z css -r build/reports/tests gs:/${{ HELLBENDER_TEST_LOGS }}${{ REPORT_PATH }}/;
+          echo "See the test report at https://storage.googleapis.com${{ HELLBENDER_TEST_LOGS }}${{ REPORT_PATH }}/tests/test/index.html";
+
+      - name: Updating the PR travis results
+        if: github.event_name == 'pull_request'
+        run:
+          pip install --user PyGithub;
+          python scripts/travis/Reporter.py https://storage.googleapis.com${{ HELLBENDER_TEST_LOGS }}${{ REPORT_PATH }}/tests/test/index.html;
+
+
   testOnDocker:
     needs: buildDocker
     runs-on: ubuntu-latest
@@ -193,6 +206,18 @@ jobs:
         with:
           name: test-results-${{ matrix.Java }}-${{ matrix.testType }}
           path: build/reports/tests
+
+      - name: Report failure Logs to PR
+        if: !${{ TEST_EXIT_VALUE }}
+        run: |
+          $GCLOUD_HOME/gsutil -m cp -z html -z js -z xml -z css -r build/reports/tests gs:/${{ HELLBENDER_TEST_LOGS }}${{ REPORT_PATH }}/;
+          echo "See the test report at https://storage.googleapis.com${{ HELLBENDER_TEST_LOGS }}${{ REPORT_PATH }}/tests/test/index.html";
+
+      - name: Updating the PR travis results
+        if: github.event_name == 'pull_request'
+        run:
+          pip install --user PyGithub;
+          python scripts/travis/Reporter.py https://storage.googleapis.com${{ HELLBENDER_TEST_LOGS }}${{ REPORT_PATH }}/tests/test/index.html;
 
   wdlGen:
     runs-on: ubuntu-latest
