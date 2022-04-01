@@ -111,7 +111,7 @@ jobs:
       - name: Run tests
         run: ./gradlew test jacocoTestReport
 
-      - uses: ${{ github.repository }}/.github/actions/upload-results@lb_github_actions
+      - uses: /broadinstitute/gatk/.github/actions/upload-results@lb_github_actions
         if: always()
 
 #      - name: Upload to codecov
@@ -201,7 +201,7 @@ jobs:
            && cp -rp build/reports/tests/testOnPackagedReleaseJar/* build/reports/tests/test \
            && rm -r build/reports/tests/testOnPackagedReleaseJar;
 
-      - uses: ${{ github.repository }}/.github/actions/upload-results@lb_github_actions
+      - uses: /broadinstitute/gatk/.github/actions/upload-results@lb_github_actions
         if: always()
 
 #      - name: Upload to codecov
@@ -265,7 +265,7 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
           cache: gradle
-      - uses: /.github/actions/install-cromwell@lb_github_actions
+      - uses: /broadinstitute/gatk/.github/actions/install-cromwell@lb_github_actions
         with:
           CROMWELL_VERSION: ${{ env.CROMWELL_VERSION }}
 
