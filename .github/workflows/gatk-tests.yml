@@ -56,16 +56,16 @@ jobs:
         java: [ 8, 11 ]
         experimental: [ false ]
         scalaVersion: [ 2.11, 2.12 ]
-        testType: [ cloud, integration, unit, variantcalling, conda ]
+        testType: [ cloud, integration, unit ]
         exclude:
           - java: 11
             scalaVersion: 2.11
           - java: 8
             scalaVersion: 2.12
-          - java: 11
-            testType: variantcalling
-          - java: 11
-            testType: conda
+          - java: 8
+            testType: integration
+          - java: 8
+            testType: unit
       fail-fast: false
     continue-on-error: ${{ matrix.experimental }}
     env:
