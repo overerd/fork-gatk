@@ -5,16 +5,18 @@ inputs:
     description: 'Cromwell Version to download'
     required: true
 runs:
-  using: composite
+  using: "composite"
   steps:
     - name: Set Cromwell env variables
-        run: |
-          echo "CROMWELL_JAR=${HOME}/cromwell-${{ CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
-          echo "WOMTOOL_JAR=${HOME}/womtool-${{ CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
+      run: |
+        echo "CROMWELL_JAR=${HOME}/cromwell-${{ CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
+        echo "WOMTOOL_JAR=${HOME}/womtool-${{ CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
+      shell: bash
     - name: Download Cromwell and Womtools
       run: |
         wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ CROMWELL_VERSION }}/cromwell-${{ CROMWELL_VERSION }}.jar;
         wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ CROMWELL_VERSION }}/womtool-${{ CROMWELL_VERSION }}.jar;
+      shell: bash
 
 
 
