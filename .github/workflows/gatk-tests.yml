@@ -271,6 +271,7 @@ jobs:
   wdlGen:
     runs-on: ubuntu-latest
     name: Test WDL Generation
+    needs: installCromwell
     steps:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -281,6 +282,7 @@ jobs:
   wdlTests:
     runs-on: ubuntu-latest
     name: Test WDL Generation
+    needs: installCromwell
     strategy:
       matrix:
         wdlTest: [ RUN_CNV_GERMLINE_COHORT_WDL, RUN_CNV_GERMLINE_CASE_WDL, RUN_CNV_SOMATIC_WDL, RUN_M2_WDL, RUN_CNN_WDL ]
