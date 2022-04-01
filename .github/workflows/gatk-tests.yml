@@ -254,7 +254,7 @@ jobs:
       matrix:
         wdlTest: [ RUN_CNV_GERMLINE_COHORT_WDL, RUN_CNV_GERMLINE_CASE_WDL, RUN_CNV_SOMATIC_WDL, RUN_M2_WDL, RUN_CNN_WDL ]
 
-    name: WDL test ${{ matrix.wdlTest }} on cromwell ${{ env.CROMWELL_VERSION }}
+    name: WDL test ${{ matrix.wdlTest }} on cromwell
     steps:
       - uses: actions/checkout@v2
         with:
