@@ -271,9 +271,10 @@ jobs:
 
       - name: "Exporting Environment Variables for Wdl Scripts"
         run: |
-          if [[ ${{ github.event_name }} == 'pull_request']]; then
+          if [[ ${{ github.event_name }} == 'pull_request']]
+          then
             "TRAVIS_PULL_REQUEST=true" >> $GITHUB_ENV 
-          else; 
+          else
              "TRAVIS_PULL_REQUEST=false" >> $GITHUB_ENV 
           fi
           "TRAVIS_COMMIT=${{ github.sha }}" >> $GITHUB_ENV
