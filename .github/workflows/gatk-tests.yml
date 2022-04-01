@@ -201,6 +201,9 @@ jobs:
            && cp -rp build/reports/tests/testOnPackagedReleaseJar/* build/reports/tests/test \
            && rm -r build/reports/tests/testOnPackagedReleaseJar;
 
+      - uses: ./.github/actions/upload-results
+        if: always()
+
 #      - name: Upload to codecov
 #        run: bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
 #
@@ -222,20 +225,6 @@ jobs:
 #          pip install --user PyGithub;
 #          python scripts/travis/Reporter.py https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html;
 
-
-  installCromwell:
-    runs-on: ubuntu-latest
-    name: Cromwell Local Setup
-    steps:
-      - name: Set Cromwell env variables
-        run: |
-          echo "CROMWELL_JAR=${HOME}/cromwell-${{ env.CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
-          echo "WOMTOOL_JAR=${HOME}/womtool-${{ env.CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
-      - name: Download Cromwell and Womtools
-        run: |
-          wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ env.CROMWELL_VERSION }}/cromwell-${{ env.CROMWELL_VERSION }}.jar;
-          wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ env.CROMWELL_VERSION }}/womtool-${{ env.CROMWELL_VERSION }}.jar;
-
   wdlGen:
     runs-on: ubuntu-latest
     name: Test WDL Generation
@@ -250,6 +239,9 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
           cache: gradle
+      - uses: ./.github/actions/install-cromwell
+        with:
+          CROMWELL_VERSION: ${{ env.CROMWELL_VERSION }}
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -257,55 +249,59 @@ jobs:
       - name: Run WDL Generation Test
         run: ./gradlew gatkWDLGenValidation
 
-#  wdlTests:
-#    runs-on: ubuntu-latest
-#    name: Test WDL Generation
-#    needs: installCromwell
-#    strategy:
-#      matrix:
-#        wdlTest: [ RUN_CNV_GERMLINE_COHORT_WDL, RUN_CNV_GERMLINE_CASE_WDL, RUN_CNV_SOMATIC_WDL, RUN_M2_WDL, RUN_CNN_WDL ]
-#    steps:
-#      - uses: actions/checkout@v2
-#        with:
-#          fetch-depth: 0
-#        - name: Set up java 8
-#          uses: actions/setup-java@v2
-#          with:
-#            java-version: '8'
-#            distribution: 'adopt'
-#            cache: gradle
-#      - name: "CNV_GERMLINE_COHORT_WDL_TEST"
-#        if: ${{ matrix.wdlTest }} == RUN_CNV_GERMLINE_COHORT_WDL
-#        run: |
-#          echo "Running CNV germline cohort workflow";
-#          bash scripts/cnv_cromwell_tests/germline/run_cnv_germline_workflows.sh COHORT;
-#
-#      - name: "CNV_GERMLINE_CASE_WDL_TEST"
-#        if: ${{ matrix.wdlTest }} == RUN_CNV_GERMLINE_CASE_WDL
-#        run: |
-#          echo "Running CNV germline case workflow";
-#          bash scripts/cnv_cromwell_tests/germline/run_cnv_germline_workflows.sh CASE;
-#
-#      - name: "CNV_SOMATIC_WDL_TEST"
-#        if: ${{ matrix.wdlTest }} == RUN_CNV_SOMATIC_WDL
-#        run: |
-#          echo "Running CNV somatic workflows";
-#          bash scripts/cnv_cromwell_tests/somatic/run_cnv_somatic_workflows.sh;
-#
-#      - name: "M2_WDL_TEST"
-#        if: ${{ matrix.wdlTest }} == RUN_M2_WDL
-#        run: |
-#          echo "Deleting some unused files before running M2 WDL...";
-#          rm -Rf src/test/resources/large/VQSR;
-#          echo "Running M2 WDL";
-#          sudo bash scripts/m2_cromwell_tests/run_m2_wdl.sh;
-#
-#      - name: "CNN_WDL_TEST"
-#        if: ${{ matrix.wdlTest }} == RUN_CNN_WDL
-#        run: |
-#          echo "Running CNN WDL";
-#          sudo bash scripts/cnn_variant_cromwell_tests/run_cnn_variant_wdl.sh;
-#
+  wdlTests:
+    runs-on: ubuntu-latest
+    name: Test WDL Generation
+    needs: installCromwell
+    strategy:
+      matrix:
+        wdlTest: [ RUN_CNV_GERMLINE_COHORT_WDL, RUN_CNV_GERMLINE_CASE_WDL, RUN_CNV_SOMATIC_WDL, RUN_M2_WDL, RUN_CNN_WDL ]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+        - name: Set up java 8
+          uses: actions/setup-java@v2
+          with:
+            java-version: '8'
+            distribution: 'adopt'
+            cache: gradle
+      - uses: ./.github/actions/install-cromwell
+        with:
+          CROMWELL_VERSION: ${{ env.CROMWELL_VERSION }}
+          
+      - name: "CNV_GERMLINE_COHORT_WDL_TEST"
+        if: ${{ matrix.wdlTest }} == RUN_CNV_GERMLINE_COHORT_WDL
+        run: |
+          echo "Running CNV germline cohort workflow";
+          bash scripts/cnv_cromwell_tests/germline/run_cnv_germline_workflows.sh COHORT;
+
+      - name: "CNV_GERMLINE_CASE_WDL_TEST"
+        if: ${{ matrix.wdlTest }} == RUN_CNV_GERMLINE_CASE_WDL
+        run: |
+          echo "Running CNV germline case workflow";
+          bash scripts/cnv_cromwell_tests/germline/run_cnv_germline_workflows.sh CASE;
+
+      - name: "CNV_SOMATIC_WDL_TEST"
+        if: ${{ matrix.wdlTest }} == RUN_CNV_SOMATIC_WDL
+        run: |
+          echo "Running CNV somatic workflows";
+          bash scripts/cnv_cromwell_tests/somatic/run_cnv_somatic_workflows.sh;
+
+      - name: "M2_WDL_TEST"
+        if: ${{ matrix.wdlTest }} == RUN_M2_WDL
+        run: |
+          echo "Deleting some unused files before running M2 WDL...";
+          rm -Rf src/test/resources/large/VQSR;
+          echo "Running M2 WDL";
+          sudo bash scripts/m2_cromwell_tests/run_m2_wdl.sh;
+
+      - name: "CNN_WDL_TEST"
+        if: ${{ matrix.wdlTest }} == RUN_CNN_WDL
+        run: |
+          echo "Running CNN WDL";
+          sudo bash scripts/cnn_variant_cromwell_tests/run_cnn_variant_wdl.sh;
+
 ##bookKeeping:
 ##  if: always()
 #  runs-on: ubuntu-latest
