@@ -271,7 +271,7 @@ jobs:
 
       - name: "Exporting Environment Variables for Wdl Scripts"
         run: |
-          "TRAVIS_PULL_REQUEST=${{ github.event_name }} == 'pull_request' " >> $GITHUB_ENV
+          "TRAVIS_PULL_REQUEST=[${{ github.event_name }} == 'pull_request'] " >> $GITHUB_ENV
           "TRAVIS_COMMIT=${{ github.sha }}" >> $GITHUB_ENV
 
       - name: "Installing GATK for tests"
