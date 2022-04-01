@@ -235,6 +235,12 @@ jobs:
         run: |
           wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ env.CROMWELL_VERSION }}/cromwell-${{ env.CROMWELL_VERSION }}.jar;
           wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ env.CROMWELL_VERSION }}/womtool-${{ env.CROMWELL_VERSION }}.jar;
+
+  wdlGen:
+    runs-on: ubuntu-latest
+    name: Test WDL Generation
+    needs: installCromwell
+    steps:
       - uses: actions/checkout@v2
         with:
           fetch: 0
@@ -245,11 +251,6 @@ jobs:
           distribution: 'adopt'
           cache: gradle
 
-  wdlGen:
-    runs-on: ubuntu-latest
-    name: Test WDL Generation
-    needs: installCromwell
-    steps:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -267,12 +268,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          - name: 'Set up java ${{ matrix.Java }}'
-            uses: actions/setup-java@v2
-            with:
-              java-version: ${{ matrix.Java }}
-              distribution: 'adopt'
-              cache: gradle
+        - name: Set up java 8
+          uses: actions/setup-java@v2
+          with:
+            java-version: '8'
+            distribution: 'adopt'
+            cache: gradle
       - name: "CNV_GERMLINE_COHORT_WDL_TEST"
         if: ${{ matrix.wdlTest }} == RUN_CNV_GERMLINE_COHORT_WDL
         run: |
