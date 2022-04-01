@@ -176,7 +176,7 @@ jobs:
             -e "scala.version=${SCALA_VERSION}" \
             -e "TEST_VERBOSITY=minimal" \
             -e "TEST_TYPE=${TEST_TYPE}" \
-            -t ${ env.IMAGE_NAME }}:${GITHUB_SHA} \
+            -t ${{ env.IMAGE_NAME }}:${{ github.sha }} \
             bash --init-file /gatk/gatkenv.rc /root/run_unit_tests.sh;
           TEST_EXIT_VALUE=$?;
           $( exit ${TEST_EXIT_VALUE} );
