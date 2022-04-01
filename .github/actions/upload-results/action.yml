@@ -24,7 +24,7 @@ runs:
 
     - name: Upload Reports
       run: |
-        $GCLOUD_HOME/gsutil -m cp -z html -z js -z xml -z css -r build/reports/tests gs:/${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/;
+        gsutil -m cp -z html -z js -z xml -z css -r build/reports/tests gs:/${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/;
         echo "See the test report at https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html";
       shell: bash
     - name: Updating the PR travis results
