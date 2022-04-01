@@ -2,7 +2,7 @@
 set -e
 
 MODE=$1
-# We split up the test into CASE in COHORT to reduce overall travis runtime
+# We split up the test into CASE in COHORT to reduce overall test runtime
 if [[ "$MODE" != "COHORT" ]] && [[ "$MODE" != "CASE" ]]; then
 	echo "First argument to this scripts needs to be COHORT or CASE"
 	exit 1
@@ -13,10 +13,10 @@ fi
 script_path=$( cd "$(dirname "${BASH_SOURCE}")" ; pwd -P )
 cd "$script_path"
 
-ln -fs /home/travis/build/broadinstitute/gatk/scripts/cnv_wdl/cnv_common_tasks.wdl
-ln -fs /home/travis/build/broadinstitute/gatk/scripts/cnv_wdl/germline/cnv_germline_case_workflow.wdl
-
 WORKING_DIR=/home/runner/work/gatk
+
+ln -fs $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/cnv_common_tasks.wdl
+ln -fs $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/germline/cnv_germline_case_workflow.wdl
 
 pushd .
 echo "Building docker without running unit tests... ========="
@@ -41,10 +41,10 @@ echo "Running ========"
 
 # Cohort WES w/ explicit GC correction
 if [[ "$MODE" == "COHORT" ]]; then
-  java -jar ${CROMWELL_JAR} run /home/travis/build/broadinstitute/gatk/scripts/cnv_wdl/germline/cnv_germline_cohort_workflow.wdl -i cnv_germline_cohort_workflow_mod.json
+  java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/germline/cnv_germline_cohort_workflow.wdl -i cnv_germline_cohort_workflow_mod.json
 fi
 
 # Scattered case WES w/ explicit GC correction
 if [[ "$MODE" == "CASE" ]]; then
-  java -jar ${CROMWELL_JAR} run /home/travis/build/broadinstitute/gatk/scripts/cnv_wdl/germline/cnv_germline_case_scattered_workflow.wdl -i cnv_germline_case_scattered_workflow_mod.json
+  java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/germline/cnv_germline_case_scattered_workflow.wdl -i cnv_germline_case_scattered_workflow_mod.json
 fi
