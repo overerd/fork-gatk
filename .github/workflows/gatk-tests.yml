@@ -97,7 +97,7 @@ jobs:
           create_credentials_file: true
 
       - name: "export the "
-        run: echo "HELLBENDER_JSON_SERVICE_ACCOUNT_KEY=${{ auth.credentials_file_path }}" >> $GITHUB_ENV
+        run: echo "HELLBENDER_JSON_SERVICE_ACCOUNT_KEY=${{ steps.auth.outputs.credentials_file_path }}" >> $GITHUB_ENV
 
       - name: 'Set up Cloud SDK'
         uses: google-github-actions/setup-gcloud@v0
