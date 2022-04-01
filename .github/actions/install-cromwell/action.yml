@@ -9,13 +9,13 @@ runs:
   steps:
     - name: Set Cromwell env variables
       run: |
-        echo "CROMWELL_JAR=${HOME}/cromwell-${{ CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
-        echo "WOMTOOL_JAR=${HOME}/womtool-${{ CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
+        echo "CROMWELL_JAR=${HOME}/cromwell-${{ inputs.CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
+        echo "WOMTOOL_JAR=${HOME}/womtool-${{ inputs.CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
       shell: bash
     - name: Download Cromwell and Womtools
       run: |
-        wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ CROMWELL_VERSION }}/cromwell-${{ CROMWELL_VERSION }}.jar;
-        wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ CROMWELL_VERSION }}/womtool-${{ CROMWELL_VERSION }}.jar;
+        wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ inputs.CROMWELL_VERSION }}/cromwell-${{ inputs.CROMWELL_VERSION }}.jar;
+        wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ inputs.CROMWELL_VERSION }}/womtool-${{ inputs.CROMWELL_VERSION }}.jar;
       shell: bash
 
 
@@ -30,9 +30,9 @@ runs:
 #  steps:
 #    - name: Set Cromwell env variables
 #      run: |
-#        echo "CROMWELL_JAR=${HOME}/cromwell-${{ env.CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
-#        echo "WOMTOOL_JAR=${HOME}/womtool-${{ env.CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
+#        echo "CROMWELL_JAR=${HOME}/cromwell-${{ env.inputs.CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
+#        echo "WOMTOOL_JAR=${HOME}/womtool-${{ env.inputs.CROMWELL_VERSION }}.jar" >> $GITHUB_ENV;
 #    - name: Download Cromwell and Womtools
 #      run: |
-#        wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ env.CROMWELL_VERSION }}/cromwell-${{ env.CROMWELL_VERSION }}.jar;
-#        wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ env.CROMWELL_VERSION }}/womtool-${{ env.CROMWELL_VERSION }}.jar;
+#        wget -O $CROMWELL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ env.inputs.CROMWELL_VERSION }}/cromwell-${{ env.inputs.CROMWELL_VERSION }}.jar;
+#        wget -O $WOMTOOL_JAR https://github.com/broadinstitute/cromwell/releases/download/${{ env.inputs.CROMWELL_VERSION }}/womtool-${{ env.inputs.CROMWELL_VERSION }}.jar;
