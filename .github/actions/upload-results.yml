@@ -1,0 +1,34 @@
+name: 'upload-results'
+description: 'uploads our codeCov and jococo test results'
+#inputs:
+#  who-to-greet:  # id of input
+#    description: 'Who to greet'
+#    required: true
+#    default: 'World'
+#outputs:
+#  random-number:
+#    description: "Random number"
+#    value: ${{ steps.random-number-generator.outputs.random-id }}
+runs:
+  using: "composite"
+  steps:
+    - name: Upload to codecov
+      run: bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-results-${{ matrix.Java }}-${{ matrix.testType }}
+        path: build/reports/tests
+
+    - name: Upload Reports
+      run: |
+        $GCLOUD_HOME/gsutil -m cp -z html -z js -z xml -z css -r build/reports/tests gs:/${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/;
+        echo "See the test report at https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html";
+
+    - name: Updating the PR travis results
+      if: github.event_name == 'pull_request' && failure()
+      run:
+        pip install --user PyGithub;
+        python scripts/travis/Reporter.py https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html;

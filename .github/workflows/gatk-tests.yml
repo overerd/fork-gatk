@@ -111,6 +111,9 @@ jobs:
       - name: Run tests
         run: ./gradlew test jacocoTestReport
 
+      - uses: ./.github/actions/upload-results
+        if: always()
+
 #      - name: Upload to codecov
 #        run: bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
 #
@@ -219,32 +222,6 @@ jobs:
 #          pip install --user PyGithub;
 #          python scripts/travis/Reporter.py https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html;
 
-  bookKeeping:
-    needs: [testOnDocker,  test]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Upload to codecov
-        run: bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results-${{ matrix.Java }}-${{ matrix.testType }}
-          path: build/reports/tests
-
-      - name: Upload Reports
-        run: |
-          $GCLOUD_HOME/gsutil -m cp -z html -z js -z xml -z css -r build/reports/tests gs:/${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/;
-          echo "See the test report at https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html";
-
-      - name: Updating the PR travis results
-        if: github.event_name == 'pull_request' && failure()
-        run:
-          pip install --user PyGithub;
-          python scripts/travis/Reporter.py https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html;
-
 
   installCromwell:
     runs-on: ubuntu-latest
@@ -287,6 +264,15 @@ jobs:
       matrix:
         wdlTest: [ RUN_CNV_GERMLINE_COHORT_WDL, RUN_CNV_GERMLINE_CASE_WDL, RUN_CNV_SOMATIC_WDL, RUN_M2_WDL, RUN_CNN_WDL ]
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          - name: 'Set up java ${{ matrix.Java }}'
+            uses: actions/setup-java@v2
+            with:
+              java-version: ${{ matrix.Java }}
+              distribution: 'adopt'
+              cache: gradle
       - name: "CNV_GERMLINE_COHORT_WDL_TEST"
         if: ${{ matrix.wdlTest }} == RUN_CNV_GERMLINE_COHORT_WDL
         run: |
@@ -318,3 +304,52 @@ jobs:
         run: |
           echo "Running CNN WDL";
           sudo bash scripts/cnn_variant_cromwell_tests/run_cnn_variant_wdl.sh;
+
+#bookKeeping:
+#  if: always()
+#  runs-on: ubuntu-latest
+#  steps:
+#    - name: Upload to codecov
+#      run: bash <(curl -s https://raw.githubusercontent.com/broadinstitute/codecov-bash-uploader/main/codecov-verified.bash)
+#
+#    - name: Upload test results
+#      if: always()
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: test-results-${{ matrix.Java }}-${{ matrix.testType }}
+#        path: build/reports/tests
+#
+#    - name: Upload Reports
+#      run: |
+#        $GCLOUD_HOME/gsutil -m cp -z html -z js -z xml -z css -r build/reports/tests gs:/${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/;
+#        echo "See the test report at https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html";
+#
+#    - name: Updating the PR travis results
+#      if: github.event_name == 'pull_request' && failure()
+#      run:
+#        pip install --user PyGithub;
+#        python scripts/travis/Reporter.py https://storage.googleapis.com${{ env.HELLBENDER_TEST_LOGS }}${{ env.REPORT_PATH }}/tests/test/index.html;
+#
+#name: 'upload results'
+#description: 'Greet someone'
+#inputs:
+#  who-to-greet:  # id of input
+#    description: 'Who to greet'
+#    required: true
+#    default: 'World'
+#outputs:
+#  random-number:
+#    description: "Random number"
+#    value: ${{ steps.random-number-generator.outputs.random-id }}
+#runs:
+#  using: "composite"
+#  steps:
+#    - run: echo Hello ${{ inputs.who-to-greet }}.
+#      shell: bash
+#    - id: random-number-generator
+#      run: echo "::set-output name=random-id::$(echo $RANDOM)"
+#      shell: bash
+#    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
+#      shell: bash
+#    - run: goodbye.sh
+#      shell: bash
