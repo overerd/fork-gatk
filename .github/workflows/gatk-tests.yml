@@ -238,7 +238,7 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
           cache: gradle
-      - uses: ./.github/actions/install-cromwell
+      - uses: /broadinstitute/gatk/.github/actions/install-cromwell@lb_github_actions
         with:
           CROMWELL_VERSION: ${{ env.CROMWELL_VERSION }}
 

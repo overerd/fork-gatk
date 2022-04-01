@@ -5,7 +5,7 @@ inputs:
     description: 'Cromwell Version to download'
     required: true
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: Set Cromwell env variables
         run: |
