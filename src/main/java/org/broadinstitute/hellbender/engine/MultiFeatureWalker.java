@@ -5,6 +5,7 @@ import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.tribble.Feature;
 import htsjdk.variant.vcf.VCFHeader;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
+import org.broadinstitute.hellbender.engine.filters.CountingReadFilter;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.IntervalUtils;
 import org.broadinstitute.hellbender.utils.SimpleInterval;
@@ -16,8 +17,11 @@ import java.util.*;
  * A MultiFeatureWalker is a tool that presents one {@link Feature} at a time in sorted order from
  * multiple sources of Features.  The input files for each feature must be sorted by locus.
  *
- * To use this walker you need only implement the abstract apply method in a class that declares
+ * To use this walker you need only implement the abstract
+ * {@link #apply(F, Object, ReadsContext, ReferenceContext)} method in a class that declares
  * a collection of FeatureInputs as an argument.
+ * You may optionally implement {@link #onTraversalStart()}, {@link #onTraversalSuccess()},
+ * and/or {@link #closeTool()}.
  */
 public abstract class MultiFeatureWalker<F extends Feature> extends WalkerBase {
 
@@ -42,7 +46,8 @@ public abstract class MultiFeatureWalker<F extends Feature> extends WalkerBase {
      * Operations performed just prior to the start of traversal.
      */
     @Override
-    public void onTraversalStart() {
+    public final void onStartup() {
+        super.onStartup();
         setDictionaryAndSamples();
     }
 
@@ -57,12 +62,17 @@ public abstract class MultiFeatureWalker<F extends Feature> extends WalkerBase {
      */
     @Override
     public void traverse() {
+        CountingReadFilter readFilter = makeReadFilter();
         final MergingIterator<F> iterator =
                 new MergingIterator<>(dictionary, features, userIntervals);
         while ( iterator.hasNext() ) {
             final PQEntry<F> entry = iterator.next();
             final F feature = entry.getFeature();
-            apply(feature, entry.getHeader());
+            final SimpleInterval featureInterval = new SimpleInterval(feature);
+            apply(feature,
+                    entry.getHeader(),
+                    new ReadsContext(reads, featureInterval, readFilter),
+                    new ReferenceContext(reference, featureInterval));
             progressMeter.update(feature);
         }
     }
@@ -75,7 +85,10 @@ public abstract class MultiFeatureWalker<F extends Feature> extends WalkerBase {
      * @param feature Current Feature being processed.
      * @param header Header object for the source from which the feature was drawn (may be null)
      */
-    public abstract void apply( final F feature, final Object header );
+    public abstract void apply( final F feature,
+                                final Object header,
+                                final ReadsContext readsContext,
+                                final ReferenceContext referenceContext );
 
     /**
      * Get the dictionary we settled on
@@ -88,34 +101,35 @@ public abstract class MultiFeatureWalker<F extends Feature> extends WalkerBase {
     public Set<String> getSampleNames() { return samples; }
 
     /**
+     * Choose the most comprehensive dictionary available (see betterDictionary method below),
+     * and concatenate the sample names available from each feature input.
      * Each feature input may have its own dictionary, and the user can specify an additional master
-     * dictionary and reference dictionary and reads dictionary.  This method makes certain that all
+     * dictionary, reference dictionary, and reads dictionary.  This method makes certain that all
      * of these dictionaries are consistent with regard to contig name and order.  It's OK if one
-     * dictionary is a subset of another:  we'll choose the more comprehensive dictionary.
+     * dictionary is a subset of another:  we'll choose the most comprehensive dictionary.
      * (Can't use the getBestAvailableSequenceDictionary method -- it throws if there are multiple
      * dictionaries available.)
-     * This method also concatenates the sample names available from each feature input.
      */
     private void setDictionaryAndSamples() {
         dictionary = getMasterSequenceDictionary();
         if ( hasReference() ) {
-            dictionary = bestDictionary(reference.getSequenceDictionary(), dictionary);
+            dictionary = betterDictionary(reference.getSequenceDictionary(), dictionary);
         }
         if ( hasReads() ) {
-            dictionary = bestDictionary(reads.getSequenceDictionary(), dictionary);
+            dictionary = betterDictionary(reads.getSequenceDictionary(), dictionary);
         }
         for ( final FeatureInput<? extends Feature> input : features.getAllInputs() ) {
             final Object header = features.getHeader(input);
             if ( header instanceof SVFeaturesHeader ) {
                 final SVFeaturesHeader svFeaturesHeader = (SVFeaturesHeader)header;
-                dictionary = bestDictionary(svFeaturesHeader.getDictionary(), dictionary);
+                dictionary = betterDictionary(svFeaturesHeader.getDictionary(), dictionary);
                 final List<String> sampleNames = svFeaturesHeader.getSampleNames();
                 if ( sampleNames != null ) {
                     samples.addAll(svFeaturesHeader.getSampleNames());
                 }
             } else if (header instanceof VCFHeader ) {
                 final VCFHeader vcfHeader = (VCFHeader)header;
-                dictionary = bestDictionary(vcfHeader.getSequenceDictionary(), dictionary);
+                dictionary = betterDictionary(vcfHeader.getSequenceDictionary(), dictionary);
                 samples.addAll(vcfHeader.getSampleNamesInOrder());
             }
         }
@@ -126,8 +140,12 @@ public abstract class MultiFeatureWalker<F extends Feature> extends WalkerBase {
         }
     }
 
-    private SAMSequenceDictionary bestDictionary( final SAMSequenceDictionary newDict,
-                                                    final SAMSequenceDictionary curDict ) {
+    /**
+     * Makes sure that the two dictionaries are consistent with regard to contig names and order.
+     * Returns the more comprehensive (larger) dictionary if they're consistent.
+     */
+    private static SAMSequenceDictionary betterDictionary( final SAMSequenceDictionary newDict,
+                                                           final SAMSequenceDictionary curDict ) {
         if ( curDict == null ) return newDict;
         if ( newDict == null ) return curDict;
         final SAMSequenceDictionary smallDict;

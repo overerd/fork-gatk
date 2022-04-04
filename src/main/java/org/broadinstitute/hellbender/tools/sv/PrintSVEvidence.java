@@ -7,9 +7,7 @@ import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.argparser.ExperimentalFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.cmdline.programgroups.StructuralVariantDiscoveryProgramGroup;
-import org.broadinstitute.hellbender.engine.FeatureInput;
-import org.broadinstitute.hellbender.engine.MultiFeatureWalker;
-import org.broadinstitute.hellbender.engine.GATKPath;
+import org.broadinstitute.hellbender.engine.*;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.codecs.*;
@@ -159,7 +157,10 @@ public class PrintSVEvidence extends MultiFeatureWalker<SVFeature> {
     }
 
     @Override
-    public void apply( final SVFeature featureArg, final Object header ) {
+    public void apply( final SVFeature featureArg,
+                       final Object header,
+                       final ReadsContext readsContext,
+                       final ReferenceContext referenceContext ) {
         final SVFeature feature;
         if ( noSampleFiltering ) {
             feature = featureArg;
