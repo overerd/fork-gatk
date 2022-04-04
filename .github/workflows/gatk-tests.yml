@@ -86,7 +86,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: 'Compile with Gradle'
-        run: ./gradlew compileJava
+        run: |
+          ./gradlew assemble;
+          ./gradlew installDist;
+          ./gradlew compileJava
 
       #Google Cloud stuff
       - id: 'auth'
@@ -171,6 +174,12 @@ jobs:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
           project_id: ${{ env.HELLBENDER_TEST_PROJECT }}
           create_credentials_file: true
+
+      - name: "export the credentials for GATK tests"
+        run: echo "HELLBENDER_JSON_SERVICE_ACCOUNT_KEY=${{ steps.auth.outputs.credentials_file_path }}" >> $GITHUB_ENV
+
+      - name: 'Set up Cloud SDK'
+        uses: google-github-actions/setup-gcloud@v0
 
       - name: build test jars
         run: ./gradlew clean shadowTestClassJar shadowTestJar
