@@ -89,7 +89,7 @@ jobs:
         run: |
           ./gradlew assemble;
           ./gradlew installDist;
-          ./gradlew compileJava
+          ./gradlew shadowJar;
 
       #Google Cloud stuff
       - id: 'auth'
