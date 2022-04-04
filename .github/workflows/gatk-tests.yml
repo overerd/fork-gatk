@@ -87,9 +87,7 @@ jobs:
 
       - name: 'Compile with Gradle'
         run: |
-          ./gradlew assemble;
-          ./gradlew installDist;
-          ./gradlew shadowJar;
+          ./gradlew compileJava ; ./gradlew installDist
 
       #Google Cloud stuff
       - id: 'auth'

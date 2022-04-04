@@ -6,8 +6,8 @@ cd "$script_path"
 
 WORKING_DIR=/home/runner/work/gatk
 
-ln -fs $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/cnv_common_tasks.wdl
-ln -fs $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_oncotator_workflow.wdl
+ln -fs $WORKING_DIR/scripts/cnv_wdl/cnv_common_tasks.wdl
+ln -fs $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_oncotator_workflow.wdl
 
 pushd .
 echo "Building docker without running unit tests... ========="
@@ -42,36 +42,36 @@ sed -r "s/__GATK_DOCKER__/broadinstitute\/gatk\:$HASH_TO_USE/g" ${CNV_CROMWELL_T
 echo "Running ========"
 
 # Panel WES
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_panel_workflow.wdl -i cnv_somatic_panel_wes_no-gc_workflow_mod.json
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_panel_workflow.wdl -i cnv_somatic_panel_wes_no-gc_workflow_mod.json
 # Panel WGS
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_panel_workflow.wdl -i cnv_somatic_panel_wgs_no-gc_workflow_mod.json
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_panel_workflow.wdl -i cnv_somatic_panel_wgs_no-gc_workflow_mod.json
 # Panel WES w/ explicit GC correction
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_panel_workflow.wdl -i cnv_somatic_panel_wes_do-gc_workflow_mod.json
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_panel_workflow.wdl -i cnv_somatic_panel_wes_do-gc_workflow_mod.json
 # Panel WGS w/ explicit GC correction
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_panel_workflow.wdl -i cnv_somatic_panel_wgs_do-gc_workflow_mod.json
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_panel_workflow.wdl -i cnv_somatic_panel_wgs_do-gc_workflow_mod.json
 
 # Pair WES
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wes_no-gc_workflow_mod.json
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wes_no-gc_workflow_mod.json
 # Pair WGS
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wgs_no-gc_workflow_mod.json
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wgs_no-gc_workflow_mod.json
 # Pair WES w/ explicit GC correction
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wes_do-gc_workflow_mod.json
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wes_do-gc_workflow_mod.json
 # Pair WGS w/ explicit GC correction
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wgs_do-gc_workflow_mod.json
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wgs_do-gc_workflow_mod.json
 # Tumor only WGS w/ explicit GC correction
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wgs_do-gc_tumor_only_workflow_mod.json
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wgs_do-gc_tumor_only_workflow_mod.json
 # Tumor only WES w/o explicit GC correction
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wes_no-gc_tumor_only_workflow_mod.json
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl -i cnv_somatic_pair_wes_no-gc_tumor_only_workflow_mod.json
 
 #### Test FuncotateSegments on a small run.
 #  Must tar up test datasources for the WDL
 echo "Preparing small gencode-only datasource dir for funcotator test..."
 pushd .
-cd $WORKING_DIR/build/broadinstitute/gatk/src/test/resources/org/broadinstitute/hellbender/tools/funcotator/
+cd $WORKING_DIR/src/test/resources/org/broadinstitute/hellbender/tools/funcotator/
 tar zcvf $WORKING_DIR/build/broadinstitute/ds.tar.gz small_cntn4_ds/gencode_cntn4/
 popd
 
 # Pair WES with funcotator
-java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl \
+java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/somatic/cnv_somatic_pair_workflow.wdl \
   -i cnv_somatic_pair_wes_do-gc_workflow_funcotator_mod.json
 #####

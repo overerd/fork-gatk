@@ -15,8 +15,8 @@ cd "$script_path"
 
 WORKING_DIR=/home/runner/work/gatk
 
-ln -fs $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/cnv_common_tasks.wdl
-ln -fs $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/germline/cnv_germline_case_workflow.wdl
+ln -fs $WORKING_DIR/scripts/cnv_wdl/cnv_common_tasks.wdl
+ln -fs $WORKING_DIR/scripts/cnv_wdl/germline/cnv_germline_case_workflow.wdl
 
 pushd .
 echo "Building docker without running unit tests... ========="
@@ -41,10 +41,10 @@ echo "Running ========"
 
 # Cohort WES w/ explicit GC correction
 if [[ "$MODE" == "COHORT" ]]; then
-  java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/germline/cnv_germline_cohort_workflow.wdl -i cnv_germline_cohort_workflow_mod.json
+  java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/germline/cnv_germline_cohort_workflow.wdl -i cnv_germline_cohort_workflow_mod.json
 fi
 
 # Scattered case WES w/ explicit GC correction
 if [[ "$MODE" == "CASE" ]]; then
-  java -jar ${CROMWELL_JAR} run $WORKING_DIR/build/broadinstitute/gatk/scripts/cnv_wdl/germline/cnv_germline_case_scattered_workflow.wdl -i cnv_germline_case_scattered_workflow_mod.json
+  java -jar ${CROMWELL_JAR} run $WORKING_DIR/scripts/cnv_wdl/germline/cnv_germline_case_scattered_workflow.wdl -i cnv_germline_case_scattered_workflow_mod.json
 fi
