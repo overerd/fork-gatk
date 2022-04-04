@@ -109,7 +109,7 @@ jobs:
         run: ./gradlew compileTestJava
 
       - name: Run tests
-        run: ./gradlew test jacocoTestReport
+        run: ./gradlew -Dscala.version=${{ SCALA_VERSION }} test jacocoTestReport
 
       - uses: /broadinstitute/gatk/.github/actions/upload-results@lb_github_actions
         if: always()
@@ -205,7 +205,7 @@ jobs:
             bash --init-file /gatk/gatkenv.rc /root/run_unit_tests.sh;
           TEST_EXIT_VALUE=$?;
           $( exit ${TEST_EXIT_VALUE} );
-          chmod -R a+w build/reports/;
+          sudo chmod -R a+w build/reports/;
           mkdir build/reports/tests/test \
            && cp -rp build/reports/tests/testOnPackagedReleaseJar/* build/reports/tests/test \
            && rm -r build/reports/tests/testOnPackagedReleaseJar;
