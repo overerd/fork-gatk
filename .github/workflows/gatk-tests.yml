@@ -164,14 +164,13 @@ jobs:
           distribution: 'adopt'
           cache: gradle
 
-
       #Google Cloud stuff
-       - id: 'auth'
-         uses: google-github-actions/auth@v0
-         with:
-           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-           project_id: ${{ env.HELLBENDER_TEST_PROJECT }}
-           create_credentials_file: true
+      - id: 'auth'
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+          project_id: ${{ env.HELLBENDER_TEST_PROJECT }}
+          create_credentials_file: true
 
       - name: build test jars
         run: ./gradlew clean shadowTestClassJar shadowTestJar
