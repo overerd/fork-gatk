@@ -164,6 +164,15 @@ jobs:
           distribution: 'adopt'
           cache: gradle
 
+
+      #Google Cloud stuff
+       - id: 'auth'
+       uses: google-github-actions/auth@v0
+       with:
+         credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+         project_id: ${{ env.HELLBENDER_TEST_PROJECT }}
+         create_credentials_file: true
+
       - name: build test jars
         run: ./gradlew clean shadowTestClassJar shadowTestJar
 
@@ -197,6 +206,7 @@ jobs:
             bash --init-file /gatk/gatkenv.rc /root/run_unit_tests.sh;
           TEST_EXIT_VALUE=$?;
           $( exit ${TEST_EXIT_VALUE} );
+          chmod -R a+w build/reports/;
           mkdir build/reports/tests/test \
            && cp -rp build/reports/tests/testOnPackagedReleaseJar/* build/reports/tests/test \
            && rm -r build/reports/tests/testOnPackagedReleaseJar;
@@ -271,7 +281,7 @@ jobs:
 
       - name: "Exporting Environment Variables for Wdl Scripts"
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request"]]
+          if [[ "${{ github.event_name }}" == "pull_request" ]]
           then
             "TRAVIS_PULL_REQUEST=true" >> $GITHUB_ENV 
           else
